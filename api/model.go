@@ -1,29 +1,27 @@
 package main
 
+// -------------- CAB ---------------
 type Cab struct {
-	Id       int
-	Location int
-	Status   CabStatus
-	Name     string
+	Id       int `json:"id"`
+	Location int `json:"location"`
+	Status   string `json:"status"`
+	Name     string `json:"name"`
+	//orders	 []Order
 }
 
-type CabStatus int
-
-const (
-	ASSIGNED CabStatus = 0
-    FREE = 1
-    CHARGING = 2
-)
-
-func (s CabStatus) String() string {
-	switch s {
-	case ASSIGNED: 	return "ASSIGNED"
-	case FREE:		return "FREE"
-	case CHARGING:	return "CHARGING"
-	}
-	return "unknown"
+var cabStatusStr = map[int]string{
+	0: "ASSIGNED",
+	1: "FREE",
+	2: "CHARGING",
 }
 
+var cabStatusInt = map[string]int{
+	"ASSIGNED": 0,
+	"FREE": 1,
+	"CHARGING": 2,
+}
+
+// ------------- STOP -------------
 type Stop struct {
 	Id 		int
 	No 		string
@@ -34,13 +32,15 @@ type Stop struct {
     Longitude 	float64
 }
 
+// ----------- ROUTE ------------
 type Route struct {
 	Id int
     Status string
-    Legs []Task
+    Legs []Leg
 }
 
-type Task struct {
+// ------------ LEG -------------
+type Leg struct {
 	Id int
 	FromStand int
 	ToStand int 
@@ -48,7 +48,28 @@ type Task struct {
     Status string
 }
 
-type Demand struct {
+var legStatusStr = map[int]string{
+	0: "PLANNED",  // proposed by Pool
+	1: "ASSIGNED", // not confirmed, initial status
+	2: "ACCEPTED", // plan accepted by customer, waiting for the cab
+	3: "REJECTED", // proposal rejected by customer(s)
+    4: "ABANDONED",// cancelled after assignment but before 'PICKEDUP'
+    5: "STARTED",  // status needed by legs
+    6: "COMPLETED",
+}
+
+var legStatusInt = map[string]int{
+	"PLANNED":  0,
+	"ASSIGNED": 1,
+	"ACCEPTED": 2,
+	"REJECTED": 3,
+    "ABANDONED":4,
+    "STARTED":  5,
+    "COMPLETED":6,
+}
+
+// -------------- ORDER ------------
+type Order struct {
 	Id int
 	From int `json:"fromStand"`
 	To int `json:"toStand"`
