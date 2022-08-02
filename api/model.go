@@ -2,7 +2,7 @@ package main
 
 // -------------- CAB ---------------
 type Cab struct {
-	Id       int `json:"id"`
+	Id       int64 `json:"id"`
 	Location int `json:"location"`
 	Status   string `json:"status"`
 	Name     string `json:"name"`
@@ -23,11 +23,11 @@ var cabStatusInt = map[string]int{
 
 // ------------- STOP -------------
 type Stop struct {
-	Id 		int
+	Id 		int64
 	No 		string
     Name 	string
     Type 	string
-    Bearing string
+    Bearing int32
     Latitude 	float64
     Longitude 	float64
 }
@@ -41,7 +41,7 @@ type Route struct {
 
 // ------------ LEG -------------
 type Leg struct {
-	Id int
+	Id int64
 	FromStand int
 	ToStand int 
 	Place int
@@ -74,11 +74,36 @@ type Order struct {
 	From int `json:"fromStand"`
 	To int `json:"toStand"`
     Eta int // set when assigned
-    InPool bool
+    InPool bool // set when assigned
+	Shared bool // willing to share?
     Cab Cab
     Status string
     MaxWait int // max wait for assignment
     MaxLoss int // [%] loss in Pool
     // LocalDateTime atTime;
     Distance int
+}
+
+var orderStatusStr = map[int]string{
+	0: "RECEIVED",  // sent by customer
+	1: "ASSIGNED",  // assigned to a cab, a proposal sent to customer with time-of-arrival
+	2: "ACCEPTED",  // plan accepted by customer, waiting for the cab
+	3: "CANCELLED", // cancelled by customer before assignment
+	4: "REJECTED",  // proposal rejected by customer
+	5: "ABANDONED", // cancelled after assignment but before 'PICKEDUP'
+	6: "REFUSED",   // no cab available, cab broke down at any stage
+	7: "PICKEDUP",
+	8: "COMPLETED",
+}
+
+var orderStatusInt = map[string]int{
+	"RECEIVED": 0,
+	"ASSIGNED": 1,
+	"ACCEPTED": 2,  
+	"CANCELLED": 3,
+	"REJECTED": 4,
+	"ABANDONED": 5,
+	"REFUSED": 6,
+	"PICKEDUP": 7,
+	"COMPLETED": 8,
 }
