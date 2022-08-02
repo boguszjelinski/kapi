@@ -42,13 +42,13 @@ type Route struct {
 // ------------ LEG -------------
 type Leg struct {
 	Id int64
-	FromStand int
-	ToStand int 
-	Place int
+	FromStand int32
+	ToStand int32
+	Place int32
     Status string
 }
 
-var legStatusStr = map[int]string{
+var legStatusStr = map[int32]string{
 	0: "PLANNED",  // proposed by Pool
 	1: "ASSIGNED", // not confirmed, initial status
 	2: "ACCEPTED", // plan accepted by customer, waiting for the cab
@@ -70,7 +70,7 @@ var legStatusInt = map[string]int{
 
 // -------------- ORDER ------------
 type Order struct {
-	Id int
+	Id int64
 	From int `json:"fromStand"`
 	To int `json:"toStand"`
     Eta int // set when assigned

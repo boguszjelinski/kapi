@@ -14,10 +14,10 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-var conn *pgx.Conn
+var conn *pgxpool.Pool
 var stops []Stop
 
 func main() {
@@ -29,12 +29,13 @@ func main() {
     defer logFile.Close()
     log.SetOutput(logFile)
     log.Printf("Started")
-    conn, err = pgx.Connect(context.Background(), "host=localhost user=kabina password=kaboot dbname=kabina port=5432 sslmode=disable TimeZone=Europe/Oslo")
+    conn, err = pgxpool.Connect(context.Background(), "host=localhost user=kabina password=kaboot dbname=kabina port=5432 sslmode=disable TimeZone=Europe/Oslo")
 	if err != nil {
 		log.Printf("Unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
-	defer conn.Close(context.Background())
+    
+	//defer conn.Close(context.Background())
     stops, err = getStopsSrvc();
     if err != nil {
         log.Printf("Unable to get stops: %v\n", err)
@@ -45,12 +46,12 @@ func main() {
     router := gin.Default()
     router.GET("/cabs/:id", basicAuth, getCab) // curl -u cab1:cab1 http://localhost:8080/cabs/1916
     router.PUT("/cabs", basicAuth, putCab) // curl -H "Content-type: application/json" -H "Accept: application/json"  -X PUT -u cab1:cab1 -d '{ "id":2, "location": 123, "status":"FREE", "name":"A2"}' http://localhost:8080/cabs
-    router.PUT("/legs", basicAuth, putLeg)
-    router.GET("/routes", basicAuth, getRoute)
-    router.PUT("/routes", basicAuth, putRoute)
-    router.GET("/stops", basicAuth, getStops)
-    router.GET("/orders/:id", basicAuth, getOrder)
-    router.PUT("/orders", basicAuth, putOrder)
+    router.PUT("/legs", basicAuth, putLeg) // curl -H "Content-type: application/json" -H "Accept: application/json"  -X PUT -u cab1:cab1 -d '{ "id":17081, "status":"STARTED"}' http://localhost:8080/legs
+    router.GET("/routes", basicAuth, getRoute) // curl -u cab2:cab2 http://localhost:8080/routes
+    router.PUT("/routes", basicAuth, putRoute) // curl -H "Content-type: application/json" -H "Accept: application/json"  -X PUT -u cab1:cab1 -d '{ "id":9724, "tatus":"ASSIGNED"}' http://localhost:8080/routes
+    router.GET("/stops", basicAuth, getStops) // curl u cab2:cab2 http://localhost:8080/stops
+    router.GET("/orders/:id", basicAuth, getOrder) // curl -u cab2:cab2 http://localhost:8080/orders/51150
+    router.PUT("/orders", basicAuth, putOrder) // curl -H "Content-type: application/json" -H "Accept: application/json"  -X PUT -u cab1:cab1 -d '{ "id":51150, "status":"ASSIGNED"}' http://localhost:8080/orders
     router.POST("/orders", basicAuth, postOrder) //curl -X POST -u "cust28:cust28" -d '{"id":-1, "fromStand":4082, "toSTand":"4083", "maxWait":10, "maxLoss":90, "shared": true}' https://localhost:8080/orders
    
     router.Run("localhost:8080")
@@ -166,8 +167,9 @@ func getOrder(c *gin.Context) {
     ret, err := getOrderSrvc(order_id)
     if err != nil {
         c.JSON(http.StatusNotFound, map[string]interface{}{"message": err})
+    } else {
+        c.JSON(http.StatusOK, ret)
     }
-    c.JSON(http.StatusOK, ret)
 }
 
 func putOrder(c *gin.Context) {
@@ -274,7 +276,6 @@ func putCabSrvc(cab Cab) Cab {
     sqlStatement := fmt.Sprintf(
         "UPDATE cab SET status=%d, location=%d WHERE id=%d", 
             cabStatusInt[cab.Status], cab.Location, cab.Id)
-log.Printf("!! %s", sqlStatement)
     conn.QueryRow(context.Background(), sqlStatement)
     return cab;
 }
@@ -294,14 +295,16 @@ func getOrderSrvc(id int64) (Order, error) {
     var ( 
         name sql.NullString
         status int
+        orderStatus int
         location int
         cab sql.NullInt64
         cab_id int64 = -1
         o Order
     )
 	err := conn.QueryRow(context.Background(), 
-        "SELECT distance, eta, from_stand, to_stand, in_pool, max_wait, max_loss, status, cab_id FROM taxi_order WHERE id=$1", 
-        id).Scan(&o.Distance, &o.Eta, &o.From, &o.To, &o.InPool, &o.MaxWait,&o.MaxLoss, &o.Status, &cab)
+        "SELECT distance, eta, from_stand, to_stand, in_pool, shared, max_wait, max_loss, status, cab_id FROM taxi_order WHERE id=$1", 
+        id).Scan(&o.Distance, &o.Eta, &o.From, &o.To, &o.InPool, &o.Shared, &o.MaxWait,&o.MaxLoss, &orderStatus, &cab)
+    
 	if err != nil {
 		log.Printf("Select order failed: %v\n", err)
 		return o, err;
@@ -313,9 +316,11 @@ func getOrderSrvc(id int64) (Order, error) {
         if err != nil {
             log.Printf("SELECT cab failed for order_id=%d cab_id=%d", id, cab_id);
         } else {
-            o.Cab = Cab { Id: id, Location: location, Name: name.String, Status: cabStatusStr[status]}
+            o.Cab = Cab { Id: cab_id, Location: location, Name: name.String, Status: cabStatusStr[status]}
         }
     }
+    o.Status = orderStatusStr[orderStatus]
+    o.Id = id
     return o, err
 }
 
@@ -333,13 +338,15 @@ func postOrderSrvc(o Order, cust_id int) (Order, error) {
         return o, errors.New("Refused")
     }
     dist := GetDistance(o.From, o.To)
-
+    t := time.Now()
+    timeNow := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
+                        t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
     sqlStatement := fmt.Sprintf(
         "INSERT INTO taxi_order (from_stand, to_stand, max_loss, max_wait, shared, in_pool, eta," +
-			"status, received, distance, cust_id) VALUES (%d,%d,%d,%d,%t,false,%d) RETURNING (id)", 
-        o.From, o.To, o.MaxLoss, o.MaxWait, o.Shared, false, -1, orderStatusInt["ASSIGNED"],
-        time.Now().String(), dist, cust_id)
-    var id int = -1;
+			"status, received, distance, cust_id) VALUES (%d,%d,%d,%d,%t,false,%d,%d,%s,%d,%d) RETURNING (id)", 
+        o.From, o.To, o.MaxLoss, o.MaxWait, o.Shared, -1, orderStatusInt["ASSIGNED"],
+        timeNow, dist, cust_id)
+    var id int64 = -1;
     err := conn.QueryRow(context.Background(), sqlStatement).Scan(&id)
     o.Id = id
     return o, err;
@@ -358,7 +365,7 @@ func getRouteSrvc(cab_id int) (Route, error) {
     var id int
     var route Route
 	err := conn.QueryRow(context.Background(), 
-        "SELECT id FROM route WHERE cab_id=$1 AND status=1 ORDER BY id LIMIT 1", //1: ASSIGNED
+        "SELECT id FROM route WHERE cab_id=$1 AND status=1 ORDER BY id LIMIT 1", //status=1: ASSIGNED
         cab_id).Scan(&id)
 	if err != nil {
 		log.Printf("Select route failed: %v\n", err)
@@ -380,10 +387,10 @@ func getRouteSrvc(cab_id int) (Route, error) {
         }
         leg := Leg {
             Id: values[0].(int64),
-            FromStand: values[1].(int),
-	        ToStand: values[2].(int),
-	        Place: values[3].(int),
-            Status: values[4].(string),
+            FromStand: values[1].(int32),
+	        ToStand: values[2].(int32),
+	        Place: values[3].(int32),
+            Status: legStatusStr[values[4].(int32)],
         }
         legs = append(legs, leg)
     }
