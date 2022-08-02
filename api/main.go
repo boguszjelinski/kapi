@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"math"
 	"net/http"
@@ -13,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/easonlin404/limit"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -21,6 +24,7 @@ var conn *pgxpool.Pool
 var stops []Stop
 
 func main() {
+   
     LOG_FILE := "kapi.log"
     logFile, err := os.OpenFile(LOG_FILE, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0644)
     if err != nil {
@@ -44,6 +48,7 @@ func main() {
     log.Printf("Read %d stops", len(stops));
     
     router := gin.Default()
+    router.Use(limit.Limit(50000))
     router.GET("/cabs/:id", basicAuth, getCab) // curl -u cab1:cab1 http://localhost:8080/cabs/1916
     router.PUT("/cabs", basicAuth, putCab) // curl -H "Content-type: application/json" -H "Accept: application/json"  -X PUT -u cab1:cab1 -d '{ "id":2, "location": 123, "status":"FREE", "name":"A2"}' http://localhost:8080/cabs
     router.PUT("/legs", basicAuth, putLeg) // curl -H "Content-type: application/json" -H "Accept: application/json"  -X PUT -u cab1:cab1 -d '{ "id":17081, "status":"STARTED"}' http://localhost:8080/legs
@@ -145,6 +150,10 @@ func getCab(c *gin.Context) {
 }
 
 func putCab(c *gin.Context) {
+    // buf, _ := ioutil.ReadAll(c.Request.Body)
+    // rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
+    // fmt.Println(readBody(rdr1)) 
+
     user := getUserId(c)
     var cab Cab
     if err := c.BindJSON(&cab); err != nil {
@@ -154,6 +163,13 @@ func putCab(c *gin.Context) {
     log.Printf("PUT cab_id=%d, status=%s location=%d usr_id=%d", 
                 cab.Id, cab.Status, cab.Location, user)
     c.JSON(http.StatusOK, putCabSrvc(cab))
+}
+func readBody(reader io.Reader) string {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(reader)
+
+	s := buf.String()
+	return s
 }
 
 // ORDER

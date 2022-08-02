@@ -3,6 +3,7 @@ module kabina/kapi
 go 1.18
 
 require (
+	github.com/easonlin404/limit v0.0.0-20190114092031-3d7b09b656e2
 	github.com/gin-gonic/gin v1.8.1
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jackc/pgx/v4 v4.16.1
