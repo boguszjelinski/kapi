@@ -1,12 +1,10 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"math"
 	"net/http"
@@ -15,17 +13,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/easonlin404/limit"
-	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/labstack/echo/v4"
 )
 
 var conn *pgxpool.Pool
 var stops []Stop
 
 func main() {
-   
-    LOG_FILE := "kapi.log"
+	// LOGGER
+	LOG_FILE := "kapi.log"
     logFile, err := os.OpenFile(LOG_FILE, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0644)
     if err != nil {
         log.Panic(err)
@@ -33,59 +30,61 @@ func main() {
     defer logFile.Close()
     log.SetOutput(logFile)
     log.Printf("Started")
+
+	// POSTGRES
     conn, err = pgxpool.Connect(context.Background(), "host=localhost user=kabina password=kaboot dbname=kabina port=5432 sslmode=disable TimeZone=Europe/Oslo")
 	if err != nil {
 		log.Printf("Unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
-    
-	//defer conn.Close(context.Background())
+	defer conn.Close()
+
+	// global STOPS
     stops, err = getStopsSrvc();
     if err != nil {
         log.Printf("Unable to get stops: %v\n", err)
 		os.Exit(1)
     }
     log.Printf("Read %d stops", len(stops));
-    
-    router := gin.Default()
-    router.Use(limit.Limit(50000))
-    router.GET("/cabs/:id", basicAuth, getCab) // curl -u cab1:cab1 http://localhost:8080/cabs/1916
-    router.PUT("/cabs", basicAuth, putCab) // curl -H "Content-type: application/json" -H "Accept: application/json"  -X PUT -u cab1:cab1 -d '{ "id":2, "location": 123, "status":"FREE", "name":"A2"}' http://localhost:8080/cabs
-    router.PUT("/legs", basicAuth, putLeg) // curl -H "Content-type: application/json" -H "Accept: application/json"  -X PUT -u cab1:cab1 -d '{ "id":17081, "status":"STARTED"}' http://localhost:8080/legs
-    router.GET("/routes", basicAuth, getRoute) // curl -u cab2:cab2 http://localhost:8080/routes
-    router.PUT("/routes", basicAuth, putRoute) // curl -H "Content-type: application/json" -H "Accept: application/json"  -X PUT -u cab1:cab1 -d '{ "id":9724, "tatus":"ASSIGNED"}' http://localhost:8080/routes
-    router.GET("/stops", basicAuth, getStops) // curl u cab2:cab2 http://localhost:8080/stops
-    router.GET("/orders/:id", basicAuth, getOrder) // curl -u cab2:cab2 http://localhost:8080/orders/51150
-    router.PUT("/orders", basicAuth, putOrder) // curl -H "Content-type: application/json" -H "Accept: application/json"  -X PUT -u cab1:cab1 -d '{ "id":51150, "status":"ASSIGNED"}' http://localhost:8080/orders
-    router.POST("/orders", basicAuth, postOrder) //curl -X POST -u "cust28:cust28" -d '{"id":-1, "fromStand":4082, "toSTand":"4083", "maxWait":10, "maxLoss":90, "shared": true}' https://localhost:8080/orders
+
+	// API
+	e := echo.New()
+
+	e.GET("/cabs/:id", getCab) // curl -u cab1:cab1 http://localhost:8080/cabs/1916
+    e.PUT("/cabs", putCab) // curl -H "Content-type: application/json" -H "Accept: application/json"  -X PUT -u cab1:cab1 -d '{ "id":2, "location": 123, "status":"FREE", "name":"A2"}' http://localhost:8080/cabs
+	e.PUT("/cabs/", putCab) 
+    e.PUT("/legs", putLeg) // curl -H "Content-type: application/json" -H "Accept: application/json"  -X PUT -u cab1:cab1 -d '{ "id":17081, "status":"STARTED"}' http://localhost:8080/legs
+	e.PUT("/legs/", putLeg) 
+    e.GET("/routes", getRoute) // curl -u cab2:cab2 http://localhost:8080/routes
+	e.GET("/routes/", getRoute)
+    e.PUT("/routes", putRoute) // curl -H "Content-type: application/json" -H "Accept: application/json"  -X PUT -u cab1:cab1 -d '{ "id":9724, "status":"ASSIGNED"}' http://localhost:8080/routes
+	e.PUT("/routes/", putRoute)
+    e.GET("/stops", getStops) // curl u cab2:cab2 http://localhost:8080/stops
+	e.GET("/stops/", getStops)
+    e.GET("/orders/:id", getOrder) // curl -u cab2:cab2 http://localhost:8080/orders/51150
+    e.PUT("/orders", putOrder) // curl -H "Content-type: application/json" -H "Accept: application/json"  -X PUT -u cab1:cab1 -d '{ "id":51150, "status":"ASSIGNED"}' http://localhost:8080/orders
+	e.PUT("/orders/", putOrder)
+    e.POST("/orders", postOrder) //curl -H "Content-type: application/json" -H "Accept: application/json"  -X POST -u "cust28:cust28" -d '{"fromStand":4082, "toStand":4083, "maxWait":10, "maxLoss":90, "shared": true}' http://localhost:8080/orders
+	e.POST("/orders/", postOrder)
    
-    router.Run("localhost:8080")
+	e.Logger.Fatal(e.Start(":8080"))
 }
 
 // ----------------- UTILITIES ---------------
-func basicAuth(c *gin.Context) {
-	user, password, hasAuth := c.Request.BasicAuth()
-	if hasAuth && ((strings.HasPrefix(user, "cab") && strings.HasPrefix(password, "cab")) ||
-        (strings.HasPrefix(user, "cust") && strings.HasPrefix(password, "cust")) ||
-        (strings.HasPrefix(user, "adm") && strings.HasPrefix(password, "adm"))) {		
-            // do nothing
-	} else {
-		c.Abort()
-		c.Writer.Header().Set("WWW-Authenticate", "Basic realm=Restricted")
-		return
-	}
+
+func getUserId(c echo.Context) int {
+    user, _, _ := c.Request().BasicAuth()
+    if strings.HasPrefix(user, "cab") || strings.HasPrefix(user, "adm") {
+      	id, err := strconv.Atoi(user[3:]) 
+    	if err == nil { return id } else { return -1 }
+	} else if strings.HasPrefix(user, "cust") {
+		id, err := strconv.Atoi(user[4:]) 
+	  	if err == nil { return id } else { return -1 }
+  	} 
+	return -1
 }
 
-func getUserId(c *gin.Context) int {
-    user, _, _ := c.Request.BasicAuth()
-    if !strings.HasPrefix(user, "cab") {
-        return -1
-    }
-    id, err := strconv.Atoi(user[3:]) 
-    if err == nil { return id } else { return -1 }
-}
-
-func getParam(c *gin.Context, name string) int64 {
+func getParam(c echo.Context, name string) int64 {
     id, err := strconv.Atoi(c.Param(name))
     if err == nil { return int64(id) } else { return -1 }
 }
@@ -135,7 +134,7 @@ func GetDistance(from_id int, to_id int) int {
 // ------------- CONTROLERS ---------------
 
 // CAB
-func getCab(c *gin.Context) {
+func getCab(c echo.Context) error {
     user := getUserId(c)
     cab_id  := getParam(c, "id")
     log.Printf("GET cab_id=%d, usr_id=%d", cab_id, user)
@@ -147,23 +146,26 @@ func getCab(c *gin.Context) {
         c.JSON(http.StatusNotFound, map[string]interface{}{"message": err})
     }
     c.JSON(http.StatusOK, ret)
+	return nil;
 }
 
-func putCab(c *gin.Context) {
+func putCab(c echo.Context) error {
     // buf, _ := ioutil.ReadAll(c.Request.Body)
     // rdr1 := ioutil.NopCloser(bytes.NewBuffer(buf))
     // fmt.Println(readBody(rdr1)) 
 
     user := getUserId(c)
     var cab Cab
-    if err := c.BindJSON(&cab); err != nil {
+    if err := c.Bind(&cab); err != nil {
         log.Printf("PUT cab failed, usr_id=%d", user)
-        return
+        return nil
     }
     log.Printf("PUT cab_id=%d, status=%s location=%d usr_id=%d", 
                 cab.Id, cab.Status, cab.Location, user)
     c.JSON(http.StatusOK, putCabSrvc(cab))
+	return nil
 }
+/*
 func readBody(reader io.Reader) string {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(reader)
@@ -171,9 +173,9 @@ func readBody(reader io.Reader) string {
 	s := buf.String()
 	return s
 }
-
+*/
 // ORDER
-func getOrder(c *gin.Context) {
+func getOrder(c echo.Context) error {
     user := getUserId(c)
     order_id  := getParam(c, "id")
     log.Printf("GET order_id=%d, usr_id=%d", order_id, user)
@@ -186,49 +188,54 @@ func getOrder(c *gin.Context) {
     } else {
         c.JSON(http.StatusOK, ret)
     }
+	return nil
 }
 
-func putOrder(c *gin.Context) {
+func putOrder(c echo.Context) error {
     user := getUserId(c)
     var order Order
-    if err := c.BindJSON(&order); err != nil {
+    if err := c.Bind(&order); err != nil {
         log.Printf("PUT order failed, usr_id=%d", user)
-        return
+        return nil
     }
     log.Printf("PUT order_id=%d, status=%s usr_id=%d", order.Id, order.Status, user)
     c.JSON(http.StatusOK, putOrderSrvc(order))
+	return nil
 }
 
-func postOrder(c *gin.Context) {
+func postOrder(c echo.Context) error {
     user := getUserId(c)
     var order Order
-    if err := c.BindJSON(&order); err != nil {
+    if err := c.Bind(&order); err != nil {
         log.Printf("POST order failed, usr_id=%d", user)
-        return
-    }
-    log.Printf("POST order_id=%d, status=%s usr_id=%d", order.Id, order.Status, user)
+        return nil
+	}
+	
+    log.Printf("POST order from=%d to=%d usr_id=%d", order.FromStand, order.ToStand, user)
     ret, err := postOrderSrvc(order, user)
     if err != nil {
 		log.Printf("POST order failed: %v\n", err)
-		return;
+		return nil
 	}
     c.JSON(http.StatusOK, ret)
+	return nil
 }
 
 // LEG
-func putLeg(c *gin.Context) {
+func putLeg(c echo.Context) error {
     user := getUserId(c)
     var leg Leg
-    if err := c.BindJSON(&leg); err != nil {
+    if err := c.Bind(&leg); err != nil {
         log.Printf("PUT leg failed, usr_id=%d", user)
-        return
+        return nil
     }
     log.Printf("PUT leg_id=%d, status=%s usr_id=%d", leg.Id, leg.Status, user)
-    c.IndentedJSON(http.StatusOK, putLegSrvc(leg))
+    c.JSON(http.StatusOK, putLegSrvc(leg))
+	return nil
 }
 
 // ROUTE
-func getRoute(c *gin.Context) {
+func getRoute(c echo.Context) error {
     user := getUserId(c)
     log.Printf("GET route usr_id=%d", user)
     if user == -1 {
@@ -239,27 +246,30 @@ func getRoute(c *gin.Context) {
         c.JSON(http.StatusNotFound, map[string]interface{}{"message": err})
     }
     c.JSON(http.StatusOK, ret)
+	return nil
 }
 
-func putRoute(c *gin.Context) {
+func putRoute(c echo.Context) error {
     user := getUserId(c)
     var route Route
-    if err := c.BindJSON(&route); err != nil {
+    if err := c.Bind(&route); err != nil {
         log.Printf("PUT route failed, usr_id=%d", user)
-        return
+        return nil
     }
     log.Printf("PUT route_id=%d, status=%s usr_id=%d", route.Id, route.Status, user)
-    c.IndentedJSON(http.StatusOK, putRouteSrvc(route))
+    c.JSON(http.StatusOK, putRouteSrvc(route))
+	return nil
 }
 
 // STOP
-func getStops(c *gin.Context) {
+func getStops(c echo.Context) error {
     user := getUserId(c)
     log.Printf("GET stops usr_id=%d", user)
     if user == -1 {
         c.JSON(http.StatusForbidden, map[string]interface{}{"message": "wrong user"})
     }
     c.JSON(http.StatusOK, stops)
+	return nil
 }
 
 // ----------- SERVICE / REPO --------------
@@ -319,7 +329,7 @@ func getOrderSrvc(id int64) (Order, error) {
     )
 	err := conn.QueryRow(context.Background(), 
         "SELECT distance, eta, from_stand, to_stand, in_pool, shared, max_wait, max_loss, status, cab_id FROM taxi_order WHERE id=$1", 
-        id).Scan(&o.Distance, &o.Eta, &o.From, &o.To, &o.InPool, &o.Shared, &o.MaxWait,&o.MaxLoss, &orderStatus, &cab)
+        id).Scan(&o.Distance, &o.Eta, &o.FromStand, &o.ToStand, &o.InPool, &o.Shared, &o.MaxWait,&o.MaxLoss, &orderStatus, &cab)
     
 	if err != nil {
 		log.Printf("Select order failed: %v\n", err)
@@ -349,18 +359,18 @@ func putOrderSrvc(o Order) Order {
 }
 
 func postOrderSrvc(o Order, cust_id int) (Order, error) {
-    if o.From == o.To {
+    if o.FromStand == o.ToStand {
         log.Printf("cust_id=%d is a joker", cust_id)
         return o, errors.New("Refused")
     }
-    dist := GetDistance(o.From, o.To)
+    dist := GetDistance(o.FromStand, o.ToStand)
     t := time.Now()
     timeNow := fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d",
                         t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second())
     sqlStatement := fmt.Sprintf(
         "INSERT INTO taxi_order (from_stand, to_stand, max_loss, max_wait, shared, in_pool, eta," +
-			"status, received, distance, cust_id) VALUES (%d,%d,%d,%d,%t,false,%d,%d,%s,%d,%d) RETURNING (id)", 
-        o.From, o.To, o.MaxLoss, o.MaxWait, o.Shared, -1, orderStatusInt["ASSIGNED"],
+			"status, received, distance, customer_id) VALUES (%d,%d,%d,%d,%t,false,%d,%d,'%s',%d,%d) RETURNING (id)", 
+        o.FromStand, o.ToStand, o.MaxLoss, o.MaxWait, o.Shared, -1, orderStatusInt["ASSIGNED"],
         timeNow, dist, cust_id)
     var id int64 = -1;
     err := conn.QueryRow(context.Background(), sqlStatement).Scan(&id)
@@ -455,4 +465,5 @@ func getStopsSrvc() ([]Stop, error) {
     }
     return stops, err
 }
+
 
