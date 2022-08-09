@@ -59,7 +59,7 @@ func main() {
 	e.GET("/routes/", getRoute)
     e.PUT("/routes", putRoute) // curl -H "Content-type: application/json" -H "Accept: application/json"  -X PUT -u cab1:cab1 -d '{ "id":9724, "status":"ASSIGNED"}' http://localhost:8080/routes
 	e.PUT("/routes/", putRoute)
-    e.GET("/stops", getStops) // curl u cab2:cab2 http://localhost:8080/stops
+    e.GET("/stops", getStops) // curl -u cab2:cab2 http://localhost:8080/stops
 	e.GET("/stops/", getStops)
     e.GET("/orders/:id", getOrder) // curl -u cab2:cab2 http://localhost:8080/orders/51150
     e.PUT("/orders", putOrder) // curl -H "Content-type: application/json" -H "Accept: application/json"  -X PUT -u cab1:cab1 -d '{ "id":51150, "status":"ASSIGNED"}' http://localhost:8080/orders

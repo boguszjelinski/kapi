@@ -15,8 +15,8 @@ import (
 	"time"
 )
 
-const host string = "http://localhost:8080" // "http://localhost:5128"//192.168.10.176
-
+const host string = "http://192.168.10.178:8080" // "http://localhost:5128"//192.168.10.176
+const cab_speed = 60.0
 
 var client = &http.Client{ Timeout: time.Second * 30 }
 
@@ -86,6 +86,7 @@ func SaveDemand(method string, usr string, dem model.Demand) (model.Demand, erro
 								"maxLoss": strconv.Itoa(dem.MaxLoss),
 								"shared": strconv.FormatBool(dem.InPool)}
 								*/	
+
 	json_data, err := json.Marshal(dem)
 	if err != nil {
 		fmt.Print(err.Error())
@@ -128,7 +129,7 @@ func SendReq(usr string, url string, method string, body io.Reader ) ([]byte, er
 		time.Sleep(2000 * time.Millisecond); // give the server some breath
 		resp, err = client.Do(req)
 		if err != nil {
-			fmt.Println("usr: "+ usr + "method" + method + ", url: " + url + ", err: " + err.Error())
+			fmt.Println("usr: "+ usr + ", method: " + method + ", url: " + url + ", err: " + err.Error())
 			return nil, err
 		}
 	}
@@ -165,8 +166,10 @@ func GetDistance(stops *[]model.Stop, from_id int, to_id int) int {
 		fmt.Printf("from %d or to %d ID not found in stops", from_id, to_id)
 		return -1
 	}
-	return int (Dist((*stops)[from].Latitude, (*stops)[from].Longitude, 
-					 (*stops)[to].Latitude, (*stops)[to].Longitude));
+	var dist = int (Dist((*stops)[from].Latitude, (*stops)[from].Longitude, 
+					 (*stops)[to].Latitude, (*stops)[to].Longitude)) * 60.0 / cab_speed;
+	if dist == 0 { dist = 1} // at least one minute
+	return dist
 }
 
 // https://dzone.com/articles/distance-calculation-using-3
