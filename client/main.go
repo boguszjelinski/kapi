@@ -20,12 +20,14 @@ const CHECK_INTERVAL = 15 // secs
 const MAX_CABS = 4000
 const MAX_STAND = 5191
 const CAB_SPEED = 60 // km/h
+const STOP_WAIT = 60 // secs
 
 // the customer part
-const REQ_PER_MIN = 800;
+const REQ_PER_MIN = 450;
 const MAX_WAIT = 15;
-const MAX_POOL_LOSS = 90; // 90% detour
+const MAX_POOL_LOSS = 70; // 70% detour
 const MAX_WAIT_FOR_RESPONSE = 3
+const MAX_WAIT_FOR_CAB_TOLERANCE = 5
 const MAX_TRIP = 10 // max allowed trip (the same const in API, should be shared! TODO)
 const MAX_TRIP_LEN = 30 // actual length, just to discover an error - cab driver got asleep :)
 const MAX_TRIP_LOSS = 2
@@ -37,7 +39,7 @@ func main() {
 	stops, _ = utils.GetEntity[[]model.Stop]("cab0", "/stops");
 	// well, why GetStops returns error? sth with Bearing
 	
-	if len(args) == 2 && args[1] == "cab" { // CAB
+	if len(args) > 1 && args[1] == "cab" { // CAB
 		//var multi = MAX_STAND/MAX_CABS // to spread cabs evenly across all stands
 		LOG_FILE := "cabs.log"
 	    logFile, err := os.OpenFile(LOG_FILE, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0644)
@@ -154,7 +156,7 @@ func RunCab(stops *[]model.Stop, cab_id int, stand int) {
 
 func deliverPassengers(stops *[]model.Stop, usr string, legs []model.Task, cab model.Cab) int {
 	for l:=0; l < len(legs); l++ {
-		sleep(60) // wait 1min: pickup + dropout; but it is stupid if the first leg has no passenger!!
+		sleep(STOP_WAIT) // wait 1min: pickup + dropout; but it is stupid if the first leg has no passenger!!
 		// go from where you are to task.stand
 		task := legs[l]
 		log.Printf("Cab cab_id=%d, is moving from %d to %d, leg_id=%d,\n", 
@@ -264,7 +266,7 @@ func RunCustomer(custId int, dem model.Demand) {
 	utils.SaveDemand("PUT", usr, order)
 	log.Printf("Accepted, waiting for that cab, cust_id=%d, order_id=%d, cab_id=%d,\n", custId, order.Id, order.Cab.Id)
 	
-	if !hasArrived(usr, order.Cab.Id, dem.From, dem.Wait) {
+	if !hasArrived(usr, order.Cab.Id, dem.From, dem.Wait, MAX_WAIT_FOR_CAB_TOLERANCE) {
 		// complain
 		log.Printf("Cab has not arrived, cust_id=%d, order_id=%d, cab_id=%d,\n", custId, order.Id, order.Cab.Id)
 		order.Status = "CANCELLED" // just not to kill scheduler
@@ -302,14 +304,17 @@ func waitForAssignment(usr string, orderId int, custId int) (model.Demand, error
 	return order, errors.New("Not assigned")
 }
 
-func hasArrived(usr string, cabId int, from int, wait int) bool {
-	for t := 0; t < wait * (60/CHECK_INTERVAL); t++ { // *4 as 15 secs below
+func hasArrived(usr string, cabId int, from int, wait int, wait_delay int) bool {
+	for t := 0; t < (wait + wait_delay) * (60/CHECK_INTERVAL); t++ { // *4 as 15 secs below
 		sleep(CHECK_INTERVAL)
 		cab, err := utils.GetEntity[model.Cab](usr, "/cabs/" + strconv.Itoa(cabId));
 		if err != nil { // ignore error
 			continue
 		}
 		if (cab.Location == from) {
+			if t > wait * (60/CHECK_INTERVAL) {
+				log.Printf("Cab was late, cust_id=%s, cab_id=%d,\n", usr, cabId)
+			}
 			return true;
 		}
 	}
