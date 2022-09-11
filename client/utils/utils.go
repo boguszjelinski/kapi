@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-const host string = "http://192.168.10.178:8080" // "http://localhost:5128"//192.168.10.176
+var host string = "http://192.168.10.178:8080" // "http://localhost:5128"//192.168.10.176
 const cab_speed = 60.0
 
 var client = &http.Client{ Timeout: time.Second * 30 }
