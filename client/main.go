@@ -15,7 +15,7 @@ import (
 )
 
 // for cabs
-const MAX_TIME = 20 // minutes; 
+const MAX_TIME = 60 // minutes; 
 const CHECK_INTERVAL = 15 // secs
 const MAX_CABS = 4000
 const MAX_STAND = 5191
@@ -23,7 +23,7 @@ const CAB_SPEED = 60 // km/h
 const STOP_WAIT = 60 // secs
 
 // the customer part
-const REQ_PER_MIN = 450;
+const REQ_PER_MIN = 200;
 const MAX_WAIT = 15;
 const MAX_POOL_LOSS = 70; // 70% detour
 const MAX_WAIT_FOR_RESPONSE = 3
@@ -86,7 +86,7 @@ func main() {
         }
 	}
 	// wait until all threads complete - 1h?
-	sleep(3600) 
+	sleep(3*3600) 
 }
 
 func RunCab(stops *[]model.Stop, cab_id int, stand int) {
@@ -108,7 +108,8 @@ func RunCab(stops *[]model.Stop, cab_id int, stand int) {
 	
 	cab.Location = stand; // the cab location read from DB (see above) might be wrong, that was the day before e.g.
 
-	for t := 0; t < 1000000 /*(4*MAX_TIME) * (60/CHECK_INTERVAL)*/; t++ { 
+	//for t := 0; t < 10000000 /*(4*MAX_TIME) * (60/CHECK_INTERVAL)*/; t++ { 
+	for {
 		route, err := utils.GetEntity[model.Route](usr, "/routes") // TODO: status NULL
 		if err == nil && route.Id != -1 { // this cab has been assigned a job
 			log.Printf("New route to run, cab_id=%d, route_id=%d,\n", cab_id,  route.Id);
@@ -133,7 +134,7 @@ func RunCab(stops *[]model.Stop, cab_id int, stand int) {
 				var dist = utils.GetDistance(stops, cab.Location, legs[0].From)
 				if dist == -1 {
 					log.Printf("GetDistance failed, cab_id=%d, from: %d to: %d\n", cab.Id, cab.Location, legs[0].From)
-					return
+					sleep(3600 / CAB_SPEED);
 				}
 				sleep((3600 / CAB_SPEED) * dist);
 				cab.Location = legs[0].From;
@@ -146,7 +147,7 @@ func RunCab(stops *[]model.Stop, cab_id int, stand int) {
 			json_data, err := json.Marshal(route)
 			if err != nil {
 				fmt.Print(err.Error())
-				return
+				//return
 			}
 			utils.UpdateEntityByte(usr, "/routes/", json_data)
 		} 
@@ -359,18 +360,18 @@ func takeATrip(usr string, custId int, order model.Demand) string {
 				str := " - duration: " + strconv.Itoa(duration/(60/CHECK_INTERVAL)) + 
 					", distance: " + strconv.Itoa(order.Distance) +
 					", Loss: " + strconv.Itoa(order.Loss) +
-					", " + strconv.Itoa(duration/(60/CHECK_INTERVAL)) +
+					", " + fmt.Sprintf("%f", float64(duration)/(60/CHECK_INTERVAL)) +
 					">" + fmt.Sprintf("%f", maxDuration)
 				log.Printf("Duration in pool was too long, " + str + ", cust_id=%d, order_id=%d, cab_id=%d,\n", 
 							custId, order.Id, order.Cab.Id)
 			}
 		} else { // not a pool
-			if duration/(60.0/CHECK_INTERVAL) > order.Distance + MAX_TRIP_LOSS {
+			if float64(duration)/(60.0/CHECK_INTERVAL) > float64(order.Distance + MAX_TRIP_LOSS) {
 				// complain
 				str := " - duration: " + strconv.Itoa(duration/(60/CHECK_INTERVAL)) +
 					", distance: " + strconv.Itoa(order.Distance) +
-					", " + strconv.Itoa(duration/(60/CHECK_INTERVAL))  +
-					">" + strconv.Itoa(int(order.Distance + MAX_TRIP_LOSS))
+					", " + fmt.Sprintf("%f", float64(duration)/(60/CHECK_INTERVAL))  +
+					">" + fmt.Sprintf("%f", float64(order.Distance + MAX_TRIP_LOSS))
 				log.Printf("Duration took too long, " + str + ", cust_id=%d, order_id=%d, cab_id=%d,\n", 
 							custId, order.Id, order.Cab.Id)
 			}
