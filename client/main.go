@@ -23,7 +23,7 @@ const CAB_SPEED = 60 // km/h
 const STOP_WAIT = 60 // secs
 
 // the customer part
-const REQ_PER_MIN = 200;
+const REQ_PER_MIN = 300;
 const MAX_WAIT = 15;
 const MAX_POOL_LOSS = 70; // 70% detour
 const MAX_WAIT_FOR_RESPONSE = 3

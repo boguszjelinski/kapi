@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type Cab struct {
 	Id       int
 	Location int
@@ -42,4 +44,5 @@ type Demand struct {
     Loss int // [%] loss in Pool
     // LocalDateTime atTime;
     Distance int
+    Received time.Time
 }
