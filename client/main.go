@@ -15,7 +15,7 @@ import (
 )
 
 // for cabs
-const MAX_TIME = 60 // minutes; 
+const MAX_TIME = 60       // minutes;
 const CHECK_INTERVAL = 15 // secs
 const MAX_CABS = 4000
 const MAX_STAND = 5191
@@ -23,12 +23,12 @@ const CAB_SPEED = 60 // km/h
 const STOP_WAIT = 60 // secs
 
 // the customer part
-const REQ_PER_MIN = 300;
-const MAX_WAIT = 15;
-const MAX_POOL_LOSS = 70; // 70% detour
+const REQ_PER_MIN = 200
+const MAX_WAIT = 15
+const MAX_POOL_LOSS = 70 // 70% detour
 const MAX_WAIT_FOR_RESPONSE = 3
 const MAX_WAIT_FOR_CAB_TOLERANCE = 5
-const MAX_TRIP = 10 // max allowed trip (the same const in API, should be shared! TODO)
+const MAX_TRIP = 10     // max allowed trip (the same const in API, should be shared! TODO)
 const MAX_TRIP_LEN = 30 // actual length, just to discover an error - cab driver got asleep :)
 const MAX_TRIP_LOSS = 2
 const DELAY = 50
@@ -36,112 +36,112 @@ const DELAY = 50
 func main() {
 	args := os.Args
 	var stops []model.Stop
-	stops, _ = utils.GetEntity[[]model.Stop]("cab0", "/stops");
+	stops, _ = utils.GetEntity[[]model.Stop]("cab0", "/stops")
 	// well, why GetStops returns error? sth with Bearing
-	
+
 	if len(args) > 1 && args[1] == "cab" { // CAB
 		//var multi = MAX_STAND/MAX_CABS // to spread cabs evenly across all stands
 		LOG_FILE := "cabs.log"
-	    logFile, err := os.OpenFile(LOG_FILE, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0644)
-    	if err != nil {
-        	log.Panic(err)
-    	}
-    	defer logFile.Close()
+		logFile, err := os.OpenFile(LOG_FILE, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0644)
+		if err != nil {
+			log.Panic(err)
+		}
+		defer logFile.Close()
 		log.SetOutput(logFile)
-	
+
 		for c := 0; c < MAX_CABS; c++ {
 			go RunCab(&stops, c, c)
 			time.Sleep(20 * time.Millisecond)
-        }
+		}
 	} else { // CUSTOMER
 		LOG_FILE := "customers.log"
-	    logFile, err := os.OpenFile(LOG_FILE, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0644)
-    	if err != nil {
-        	log.Panic(err)
-    	}
-    	defer logFile.Close()
+		logFile, err := os.OpenFile(LOG_FILE, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0644)
+		if err != nil {
+			log.Panic(err)
+		}
+		defer logFile.Close()
 		log.SetOutput(logFile)
-		usrid := 1;
-		for t:= 0; t < MAX_TIME; t++ { // time axis
-            for i := 0; i < REQ_PER_MIN; i++ {
+		usrid := 1
+		for t := 0; t < MAX_TIME; t++ { // time axis
+			for i := 0; i < REQ_PER_MIN; i++ {
 				var dem model.Demand
-				dem.From= rand.Intn(MAX_STAND)
-				dem.To 	= utils.RandomTo(dem.From, MAX_STAND)
+				dem.From = rand.Intn(MAX_STAND)
+				dem.To = utils.RandomTo(dem.From, MAX_STAND)
 				if dem.From == dem.To || utils.GetDistance(&stops, dem.From, dem.To) > MAX_WAIT {
 					time.Sleep(time.Duration(DELAY) * time.Millisecond)
-					continue;
+					continue
 				}
 				dem.Wait = MAX_WAIT
 				dem.Loss = MAX_POOL_LOSS
 				dem.InPool = true
-				                // 'at time' requests can be simulated with Java client
-                go RunCustomer(usrid, dem)
-				time.Sleep(time.Duration(60*1000/REQ_PER_MIN) * time.Millisecond) 
+				// 'at time' requests can be simulated with Java client
+				go RunCustomer(usrid, dem)
+				time.Sleep(time.Duration(60*1000/REQ_PER_MIN) * time.Millisecond)
 				usrid++
-            }
-			// wait := 60 - (DELAY/1000)*REQ_PER_MIN 
+			}
+			// wait := 60 - (DELAY/1000)*REQ_PER_MIN
 			// if wait > 0 {
-            // 	sleep(wait)
+			// 	sleep(wait)
 			// }
-        }
+		}
 	}
 	// wait until all threads complete - 1h?
-	sleep(3*3600) 
+	sleep(3 * 3600)
 }
 
 func RunCab(stops *[]model.Stop, cab_id int, stand int) {
-	var usr string = "cab" + strconv.Itoa(cab_id) 
+	var usr string = "cab" + strconv.Itoa(cab_id)
 	log.Printf("Starting my shift, cab_id=%d,\n", cab_id)
-	cab, err := utils.GetEntity[model.Cab](usr, "/cabs/" + strconv.Itoa(cab_id))
+	cab, err := utils.GetEntity[model.Cab](usr, "/cabs/"+strconv.Itoa(cab_id))
 	if err != nil {
-		log.Printf("cab_id=%d not activated 1st try\n", cab_id);
-		cab, err = utils.GetEntity[model.Cab](usr, "/cabs/" + strconv.Itoa(cab_id))
+		log.Printf("cab_id=%d not activated 1st try\n", cab_id)
+		cab, err = utils.GetEntity[model.Cab](usr, "/cabs/"+strconv.Itoa(cab_id))
 		if err != nil {
-			log.Printf("cab_id=%d not activated 2nd try\n", cab_id);
-			return;
+			log.Printf("cab_id=%d not activated 2nd try\n", cab_id)
+			return
 		}
 	}
 
 	// non-random, nice deterministic distribution so that simulations are reproducible
 	log.Printf("Updating cab_id=%d, free at: %d\n", cab_id, stand)
 	utils.UpdateCab(usr, cab_id, stand, "FREE")
-	
-	cab.Location = stand; // the cab location read from DB (see above) might be wrong, that was the day before e.g.
 
-	//for t := 0; t < 10000000 /*(4*MAX_TIME) * (60/CHECK_INTERVAL)*/; t++ { 
+	cab.Location = stand // the cab location read from DB (see above) might be wrong, that was the day before e.g.
+
+	//for t := 0; t < 10000000 /*(4*MAX_TIME) * (60/CHECK_INTERVAL)*/; t++ {
 	for {
 		route, err := utils.GetEntity[model.Route](usr, "/routes") // TODO: status NULL
-		if err == nil && route.Id != -1 { // this cab has been assigned a job
-			log.Printf("New route to run, cab_id=%d, route_id=%d,\n", cab_id,  route.Id);
+		if err == nil && route.Id != -1 {                          // this cab has been assigned a job
+			log.Printf("New route to run, cab_id=%d, route_id=%d,\n", cab_id, route.Id)
 			// go to first task - virtual walk, just wait this amount of time
 			legs := route.Legs
 			if len(legs) == 0 {
-				log.Printf("Error - route has no legs, cab_id=%d, route_id=%d,\n", cab_id, route.Id);
-				sleep(CHECK_INTERVAL) 
+				log.Printf("Error - route has no legs, cab_id=%d, route_id=%d,\n", cab_id, route.Id)
+				sleep(CHECK_INTERVAL)
 				continue
 			}
 			// TODO: backend should give a sorted list
 			sort.Slice(legs[:], func(i, j int) bool {
 				return legs[i].Place < legs[j].Place
-			  })
+			})
 			// the first leg in a route should already be cab's move to pickup the first customer
 			// but let's check
-			if legs[0].From != cab.Location { 
+			if legs[0].From != cab.Location {
 				// strange - scheduler did not know cab's location (! never found in logs)
-				log.Printf("Error, first leg (%d) does not start at cab's location: %d, cab_id=%d, moving to stand %d\n", 
-										legs[0].Id, cab.Location, cab_id, legs[0].From);
+				log.Printf("Error, first leg (%d) does not start at cab's location: %d, cab_id=%d, moving to stand %d\n",
+					legs[0].Id, cab.Location, cab_id, legs[0].From)
 				// cab is moving
 				var dist = utils.GetDistance(stops, cab.Location, legs[0].From)
 				if dist == -1 {
 					log.Printf("GetDistance failed, cab_id=%d, from: %d to: %d\n", cab.Id, cab.Location, legs[0].From)
-					sleep(3600 / CAB_SPEED);
+					sleep(3600 / CAB_SPEED)
 				}
-				sleep((3600 / CAB_SPEED) * dist);
-				cab.Location = legs[0].From;
+				sleep((3600 / CAB_SPEED) * dist)
+				cab.Location = legs[0].From
 				// inform that cab is at the stand -> update Cab entity, 'completed' previous Task
 				utils.UpdateCab(usr, cab_id, cab.Location, "ASSIGNED")
 			}
-			cab.Location = deliverPassengers(stops, usr, legs, cab);
+			cab.Location = deliverPassengers(stops, usr, legs, cab)
 			//utils.UpdateStatus(usr, "/routes/", route.Id, "COMPLETED")
 			route.Status = "COMPLETED"
 			json_data, err := json.Marshal(route)
@@ -150,20 +150,19 @@ func RunCab(stops *[]model.Stop, cab_id int, stand int) {
 				//return
 			}
 			utils.UpdateEntityByte(usr, "/routes/", json_data)
-		} 
+		}
 		sleep(CHECK_INTERVAL)
 	}
 }
 
 func deliverPassengers(stops *[]model.Stop, usr string, legs []model.Task, cab model.Cab) int {
-	for l:=0; l < len(legs); l++ {
+	for l := 0; l < len(legs); l++ {
 		sleep(STOP_WAIT) // wait 1min: pickup + dropout; but it is stupid if the first leg has no passenger!!
 		// go from where you are to task.stand
 		task := legs[l]
-		log.Printf("Cab cab_id=%d, is moving from %d to %d, leg_id=%d,\n", 
-				   cab.Id, task.From, task.To, task.Id)
+		log.Printf("Cab cab_id=%d, is moving from %d to %d, leg_id=%d,\n",
+			cab.Id, task.From, task.To, task.Id)
 		task.Status = "STARTED"
-		//utils.UpdateStatus(usr, "/legs/", task.Id, "STARTED")
 		json_data, err := json.Marshal(task)
 		if err != nil {
 			fmt.Print(err.Error())
@@ -172,25 +171,22 @@ func deliverPassengers(stops *[]model.Stop, usr string, legs []model.Task, cab m
 		utils.UpdateEntityByte(usr, "/legs/", json_data)
 		// wait as long as it takes to go
 		var dist = utils.GetDistance(stops, task.From, task.To)
-		if dist == -1 {
-			log.Printf("GetDistance failed, cab_id=%d, from: %d to: %d\n", cab.Id, task.From, task.To)
-			return cab.Location
-		}
-		sleep((3600/CAB_SPEED) * dist) // cab is moving
-		cab.Location = task.To;
+		sleep((3600 / CAB_SPEED) * dist) // cab is moving
+		cab.Location = task.To
 
-		//utils.UpdateStatus(usr, "/legs/", task.Id, "COMPLETED")
 		task.Status = "COMPLETED"
 		json_data, err = json.Marshal(task)
 		if err != nil {
+			log.Printf("Fatal marshal err, cab_id=%d,\n", cab.Id)
 			fmt.Print(err.Error())
 			return cab.Location
 		}
 		utils.UpdateEntityByte(usr, "/legs/", json_data)
 
 		// inform sheduler / customer
-		if (l == len(legs) - 1) {
+		if l == len(legs)-1 {
 			cab.Status = "FREE"
+			log.Printf("Cab is free, cab_id=%d,\n", cab.Id)
 		} else {
 			cab.Status = "ASSIGNED" // unneeded but strange "CHARGING" in log
 		}
@@ -202,13 +198,17 @@ func deliverPassengers(stops *[]model.Stop, usr string, legs []model.Task, cab m
 		if err != nil {
 			log.Printf("Could not check route for updates, cab_id=%d, err=%s\n", cab.Id, err)
 		} else {
-            legs = route.Legs;
-            sort.Slice(legs[:], func(i, j int) bool {
-                return legs[i].Place < legs[j].Place
-            })
+			if len(route.Legs) > len(legs) {
+				log.Printf("Route has been extended by %d legs, cab_id=%d,\n",
+					len(route.Legs)-len(legs), cab.Id)
+			}
+			legs = route.Legs
+			sort.Slice(legs[:], func(i, j int) bool {
+				return legs[i].Place < legs[j].Place
+			})
 		}
 	}
-	return cab.Location;
+	return cab.Location
 }
 
 func RunCustomer(custId int, dem model.Demand) {
@@ -222,33 +222,33 @@ func RunCustomer(custId int, dem model.Demand) {
 	// send to dispatcher that we need a cab
 	// order id returned
 
-	var usr string = "cust" + strconv.Itoa(custId) 
+	var usr string = "cust" + strconv.Itoa(custId)
 
 	log.Printf("Request cust_id=%d, from=%d to=%d\n", custId, dem.From, dem.To)
 	dem.Status = "RECEIVED"
 	dem.Cab.Status = "FREE" // not important, this will not be updated, but a value must be present
-	dem.Id = -1;
-	order, err := utils.SaveDemand("POST", usr, dem);
-  
-	if err!=nil || order.Id == -1 { // in most cases - distance not accepted
+	dem.Id = -1
+	order, err := utils.SaveDemand("POST", usr, dem)
+
+	if err != nil || order.Id == -1 { // in most cases - distance not accepted
 		log.Printf("Unable to request a cab, cust_id=%d, order_id=%d,\n", custId, order.Id)
 		return
 	}
 
 	log.Printf("Cab requested, cust_id=%d, order_id=%d\n", custId, order.Id)
 	sleep(CHECK_INTERVAL) // just give the solver some time
-	
+
 	var temp_id = order.Id
 	order, err = waitForAssignment(usr, temp_id, custId)
-	
+
 	if err != nil {
-		log.Printf("Waited in vain, cust_id=%d, order_id=%d, status=%s, error=%s\n", 
-					custId, temp_id, order.Status, err.Error())
+		log.Printf("Waited in vain, cust_id=%d, order_id=%d, status=%s, error=%s\n",
+			custId, temp_id, order.Status, err.Error())
 		return
 	}
 	if order.Status != "ASSIGNED" { //|| ord.cab_id == -1
-		log.Printf("Waited in vain, no assignment, cust_id=%d, order_id=%d, status=%s\n", 
-						custId, order.Id, order.Status)
+		log.Printf("Waited in vain, no assignment, cust_id=%d, order_id=%d, status=%s\n",
+			custId, order.Id, order.Status)
 		if order.Status != "REFUSED" { // most likely RECEIVED
 			order.Status = "CANCELLED" // just not to kill scheduler
 			utils.SaveDemand("PUT", usr, order)
@@ -257,7 +257,7 @@ func RunCustomer(custId int, dem model.Demand) {
 	}
 
 	log.Printf("Assigned, cust_id=%d, order_id=%d, cab_id=%d,\n", custId, order.Id, order.Cab.Id)
-	
+
 	if order.Eta > order.Wait {
 		// TASK: stop here, now only complain
 		log.Printf("ETA exceeds Wait, cust_id=%d, order_id=%d,\n", custId, order.Id)
@@ -266,21 +266,21 @@ func RunCustomer(custId int, dem model.Demand) {
 	order.Status = "ACCEPTED"
 	utils.SaveDemand("PUT", usr, order)
 	log.Printf("Accepted, waiting for that cab, cust_id=%d, order_id=%d, cab_id=%d,\n", custId, order.Id, order.Cab.Id)
-	
+
 	if !hasArrived(usr, order.Cab.Id, dem.From, dem.Wait, MAX_WAIT_FOR_CAB_TOLERANCE) {
 		// complain
 		log.Printf("Cab has not arrived, cust_id=%d, order_id=%d, cab_id=%d,\n", custId, order.Id, order.Cab.Id)
 		order.Status = "CANCELLED" // just not to kill scheduler
 		utils.SaveDemand("PUT", usr, order)
-		return;
+		return
 	}
-	
-	status := takeATrip(usr, custId, order); 
-	
+
+	status := takeATrip(usr, custId, order)
+
 	if status != "COMPLETED" {
 		order.Status = "CANCELLED" // just not to kill scheduler
-		log.Printf("Status is not COMPLETED, cancelling the trip, cust_id=%d, order_id=%d, cab_id=%d,\n", 
-					custId, order.Id, order.Cab.Id)
+		log.Printf("Status is not COMPLETED, cancelling the trip, cust_id=%d, order_id=%d, cab_id=%d,\n",
+			custId, order.Id, order.Cab.Id)
 		utils.SaveDemand("PUT", usr, order)
 	}
 }
@@ -288,16 +288,16 @@ func RunCustomer(custId int, dem model.Demand) {
 func waitForAssignment(usr string, orderId int, custId int) (model.Demand, error) {
 	var order model.Demand
 	order.Id = -1
-	for t := 0; t < MAX_WAIT_FOR_RESPONSE * (60 / CHECK_INTERVAL); t++ {
-		order, err := utils.GetEntity[model.Demand](usr, "/orders/" + strconv.Itoa(orderId))
+	for t := 0; t < MAX_WAIT_FOR_RESPONSE*(60/CHECK_INTERVAL); t++ {
+		order, err := utils.GetEntity[model.Demand](usr, "/orders/"+strconv.Itoa(orderId))
 		if err != nil {
-			log.Printf("Serious error, order not found or received, cust_id=%d, order_id=%d,\n", custId, orderId);
+			log.Printf("Serious error, order not found or received, cust_id=%d, order_id=%d,\n", custId, orderId)
 			// ignore
 		}
-		if (order.Status == "REFUSED")  {
+		if order.Status == "REFUSED" {
 			return order, errors.New("Refused")
 		}
-		if (order.Status == "ASSIGNED")  {
+		if order.Status == "ASSIGNED" {
 			return order, nil
 		}
 		sleep(CHECK_INTERVAL)
@@ -306,20 +306,20 @@ func waitForAssignment(usr string, orderId int, custId int) (model.Demand, error
 }
 
 func hasArrived(usr string, cabId int, from int, wait int, wait_delay int) bool {
-	for t := 0; t < (wait + wait_delay) * (60/CHECK_INTERVAL); t++ { // *4 as 15 secs below
+	for t := 0; t < (wait+wait_delay)*(60/CHECK_INTERVAL); t++ { // *4 as 15 secs below
 		sleep(CHECK_INTERVAL)
-		cab, err := utils.GetEntity[model.Cab](usr, "/cabs/" + strconv.Itoa(cabId));
+		cab, err := utils.GetEntity[model.Cab](usr, "/cabs/"+strconv.Itoa(cabId))
 		if err != nil { // ignore error
 			continue
 		}
-		if (cab.Location == from) {
-			if t > wait * (60/CHECK_INTERVAL) {
+		if cab.Location == from {
+			if t > wait*(60/CHECK_INTERVAL) {
 				log.Printf("Cab was late, cust_id=%s, cab_id=%d,\n", usr, cabId)
 			}
-			return true;
+			return true
 		}
 	}
-	return false;
+	return false
 }
 
 // return status
@@ -331,49 +331,49 @@ func takeATrip(usr string, custId int, order model.Demand) string {
 
 	duration := 0
 
-	for ; duration < MAX_TRIP_LEN * (60/CHECK_INTERVAL); duration++ {
+	for ; duration < MAX_TRIP_LEN*(60/CHECK_INTERVAL); duration++ {
 		sleep(CHECK_INTERVAL)
 		/*order = getEntity("orders/", cust_id, order_id);
 		if (order.status == OrderStatus.COMPLETED && order.Cab.Id != -1)  {
 			break;
 		}*/
-		cab, err := utils.GetEntity[model.Cab](usr, "/cabs/" + strconv.Itoa(order.Cab.Id));
+		cab, err := utils.GetEntity[model.Cab](usr, "/cabs/"+strconv.Itoa(order.Cab.Id))
 		if err != nil { // ignore error
 			continue
 		}
 		if cab.Location == order.To {
-			log.Printf("Arrived at %d, cust_id=%d, order_id=%d, cab_id=%d,\n", order.To, custId, order.Id, order.Cab.Id);
+			log.Printf("Arrived at %d, cust_id=%d, order_id=%d, cab_id=%d,\n", order.To, custId, order.Id, order.Cab.Id)
 			order.Status = "COMPLETED"
-			utils.SaveDemand("PUT", usr, order) 
-			break;
+			utils.SaveDemand("PUT", usr, order)
+			break
 		}
 	}
-	
-	if duration >= MAX_TRIP_LEN * (60.0/CHECK_INTERVAL) {
-		log.Printf("Something wrong - customer has never reached the destination, cust_id=%d, order_id=%d, cab_id=%d,\n", 
-					custId, order.Id, order.Cab.Id)
+
+	if duration >= MAX_TRIP_LEN*(60.0/CHECK_INTERVAL) {
+		log.Printf("Something wrong - customer has never reached the destination, cust_id=%d, order_id=%d, cab_id=%d,\n",
+			custId, order.Id, order.Cab.Id)
 	} else {
 		if order.InPool {
-			var maxDuration = float64(order.Distance) * (1.0+ (float64(order.Loss)/100.0)) + float64(MAX_TRIP_LOSS)
+			var maxDuration = float64(order.Distance)*(1.0+(float64(order.Loss)/100.0)) + float64(MAX_TRIP_LOSS)
 			if float64(duration)/(60.0/CHECK_INTERVAL) > maxDuration {
 				// complain
-				str := " - duration: " + strconv.Itoa(duration/(60/CHECK_INTERVAL)) + 
+				str := " - duration: " + strconv.Itoa(duration/(60/CHECK_INTERVAL)) +
 					", distance: " + strconv.Itoa(order.Distance) +
 					", Loss: " + strconv.Itoa(order.Loss) +
 					", " + fmt.Sprintf("%f", float64(duration)/(60/CHECK_INTERVAL)) +
 					">" + fmt.Sprintf("%f", maxDuration)
-				log.Printf("Duration in pool was too long, " + str + ", cust_id=%d, order_id=%d, cab_id=%d,\n", 
-							custId, order.Id, order.Cab.Id)
+				log.Printf("Duration in pool was too long, "+str+", cust_id=%d, order_id=%d, cab_id=%d,\n",
+					custId, order.Id, order.Cab.Id)
 			}
 		} else { // not a pool
-			if float64(duration)/(60.0/CHECK_INTERVAL) > float64(order.Distance + MAX_TRIP_LOSS) {
+			if float64(duration)/(60.0/CHECK_INTERVAL) > float64(order.Distance+MAX_TRIP_LOSS) {
 				// complain
 				str := " - duration: " + strconv.Itoa(duration/(60/CHECK_INTERVAL)) +
 					", distance: " + strconv.Itoa(order.Distance) +
-					", " + fmt.Sprintf("%f", float64(duration)/(60/CHECK_INTERVAL))  +
-					">" + fmt.Sprintf("%f", float64(order.Distance + MAX_TRIP_LOSS))
-				log.Printf("Duration took too long, " + str + ", cust_id=%d, order_id=%d, cab_id=%d,\n", 
-							custId, order.Id, order.Cab.Id)
+					", " + fmt.Sprintf("%f", float64(duration)/(60/CHECK_INTERVAL)) +
+					">" + fmt.Sprintf("%f", float64(order.Distance+MAX_TRIP_LOSS))
+				log.Printf("Duration took too long, "+str+", cust_id=%d, order_id=%d, cab_id=%d,\n",
+					custId, order.Id, order.Cab.Id)
 			}
 		}
 	}

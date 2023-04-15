@@ -18,11 +18,11 @@ import (
 var host string = "http://localhost:8080" // "http://localhost:5128"//192.168.10.178
 const cab_speed = 60.0
 
-var client = &http.Client{ Timeout: time.Second * 30 }
+var client = &http.Client{Timeout: time.Second * 30}
 
-func GetEntity[N model.Cab | model.Demand | model.Route | []model.Stop ](usr string, path string) (N, error) {
+func GetEntity[N model.Cab | model.Demand | model.Route | []model.Stop](usr string, path string) (N, error) {
 	var result N
-	body, err := SendReq(usr, host + path, "GET", nil)
+	body, err := SendReq(usr, host+path, "GET", nil)
 	if err != nil {
 		return result, err
 	}
@@ -37,7 +37,7 @@ func GetEntity[N model.Cab | model.Demand | model.Route | []model.Stop ](usr str
 }
 
 func UpdateCab(usr string, cab_id int, stand int, status string) {
-	cab := model.Cab { Id: cab_id, Location: stand, Status: status}
+	cab := model.Cab{Id: cab_id, Location: stand, Status: status}
 	json_data, err := json.Marshal(cab)
 	if err != nil {
 		fmt.Print(err.Error())
@@ -68,10 +68,14 @@ func UpdateEntity(usr string, path string, id int, values map[string]string) {
 */
 
 func UpdateEntityByte(usr string, path string, json_data []byte) {
-	_, err := SendReq(usr, host + path, "PUT", bytes.NewReader(json_data))
+	_, err := SendReq(usr, host+path, "PUT", bytes.NewReader(json_data))
 	if err != nil {
-		fmt.Print(err.Error())
-		return
+		// retry
+		_, err := SendReq(usr, host+path, "PUT", bytes.NewReader(json_data))
+		if err != nil {
+			fmt.Print(err.Error())
+			return
+		}
 	}
 	//fmt.Println(body)
 }
@@ -79,20 +83,20 @@ func UpdateEntityByte(usr string, path string, json_data []byte) {
 func SaveDemand(method string, usr string, dem model.Demand) (model.Demand, error) {
 	var result model.Demand
 	/*values := map[string]string{"id": strconv.Itoa(dem.Id),
-								"fromStand": strconv.Itoa(dem.From), 
-								"toStand": strconv.Itoa(dem.To), 
-								"status": dem.Status,
-								"maxWait": strconv.Itoa(dem.MaxWait),
-								"maxLoss": strconv.Itoa(dem.MaxLoss),
-								"shared": strconv.FormatBool(dem.InPool)}
-								*/	
+	"fromStand": strconv.Itoa(dem.From),
+	"toStand": strconv.Itoa(dem.To),
+	"status": dem.Status,
+	"maxWait": strconv.Itoa(dem.MaxWait),
+	"maxLoss": strconv.Itoa(dem.MaxLoss),
+	"shared": strconv.FormatBool(dem.InPool)}
+	*/
 
 	json_data, err := json.Marshal(dem)
 	if err != nil {
 		fmt.Print(err.Error())
 		return result, err
 	}
-	url := host + "/orders/";
+	url := host + "/orders/"
 	//if method == "PUT" {
 	//	url += strconv.Itoa(dem.Id)
 	//}
@@ -114,7 +118,7 @@ func SaveDemand(method string, usr string, dem model.Demand) (model.Demand, erro
 	return result, nil
 }
 
-func SendReq(usr string, url string, method string, body io.Reader ) ([]byte, error) {
+func SendReq(usr string, url string, method string, body io.Reader) ([]byte, error) {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		fmt.Print(err.Error())
@@ -122,24 +126,26 @@ func SendReq(usr string, url string, method string, body io.Reader ) ([]byte, er
 		//os.Exit(1)
 	}
 	req.SetBasicAuth(usr, usr)
-	req.Header.Set("Content-Type", "application/json") // for POST 
+	req.Header.Set("Content-Type", "application/json") // for POST
 	resp, err := client.Do(req)
 	if err != nil {
 		// try again
-		time.Sleep(2000 * time.Millisecond); // give the server some breath
+		time.Sleep(2000 * time.Millisecond) // give the server some breath
 		resp, err = client.Do(req)
 		if err != nil {
-			fmt.Println("usr: "+ usr + ", method: " + method + ", url: " + url + ", err: " + err.Error())
+			fmt.Println("usr: " + usr + ", method: " + method + ", url: " + url + ", err: " + err.Error())
 			return nil, err
 		}
 	}
 	defer resp.Body.Close()
 	respBody, err := ioutil.ReadAll(resp.Body) // response body is []byte
-	
-	if err != nil || strings.Contains(string(respBody[:]),"message") {
-		if err != nil { fmt.Print(err.Error()) } 
-		//else { 
-		//	fmt.Printf("user=%s url=%s method=%s err:%s", usr, url, method, string(respBody[:])) 
+
+	if err != nil || strings.Contains(string(respBody[:]), "message") {
+		if err != nil {
+			fmt.Print(err.Error())
+		}
+		//else {
+		//	fmt.Printf("user=%s url=%s method=%s err:%s", usr, url, method, string(respBody[:]))
 		//}
 		return nil, err
 	}
@@ -150,13 +156,13 @@ func SendReq(usr string, url string, method string, body io.Reader ) ([]byte, er
 func GetDistance(stops *[]model.Stop, from_id int, to_id int) int {
 	var from = -1
 	var to = -1
-	for x :=0; x<len((*stops)); x++ {
+	for x := 0; x < len((*stops)); x++ {
 		if (*stops)[x].Id == from_id {
 			from = x
 			break
 		}
 	}
-	for x :=0; x<len((*stops)); x++ {
+	for x := 0; x < len((*stops)); x++ {
 		if (*stops)[x].Id == to_id {
 			to = x
 			break
@@ -166,41 +172,48 @@ func GetDistance(stops *[]model.Stop, from_id int, to_id int) int {
 		fmt.Printf("from %d or to %d ID not found in stops", from_id, to_id)
 		return -1
 	}
-	var dist = int (Dist((*stops)[from].Latitude, (*stops)[from].Longitude, 
-					 (*stops)[to].Latitude, (*stops)[to].Longitude)) * 60.0 / cab_speed;
-	if dist == 0 { dist = 1} // at least one minute
+	var dist = int(Dist((*stops)[from].Latitude, (*stops)[from].Longitude,
+		(*stops)[to].Latitude, (*stops)[to].Longitude)) * 60.0 / cab_speed
+	if dist == 0 {
+		dist = 1
+	} // at least one minute
 	return dist
 }
 
 // https://dzone.com/articles/distance-calculation-using-3
 func Dist(lat1 float64, lon1 float64, lat2 float64, lon2 float64) float64 {
-	var theta = lon1 - lon2;
-	var dist = math.Sin(deg2rad(lat1)) * math.Sin(deg2rad(lat2)) + math.Cos(deg2rad(lat1)) * math.Cos(deg2rad(lat2)) * math.Cos(deg2rad(theta));
-	dist = math.Acos(dist);
-	dist = rad2deg(dist);
-	dist = dist * 60 * 1.1515;
-	dist = dist * 1.609344;
-	return (dist);
+	var theta = lon1 - lon2
+	var dist = math.Sin(deg2rad(lat1))*math.Sin(deg2rad(lat2)) + math.Cos(deg2rad(lat1))*math.Cos(deg2rad(lat2))*math.Cos(deg2rad(theta))
+	dist = math.Acos(dist)
+	dist = rad2deg(dist)
+	dist = dist * 60 * 1.1515
+	dist = dist * 1.609344
+	return (dist)
 }
 
 func deg2rad(deg float64) float64 {
-	return (deg * math.Pi / 180.0);
+	return (deg * math.Pi / 180.0)
 }
 
 func rad2deg(rad float64) float64 {
-	return (rad * 180.0 / math.Pi);
+	return (rad * 180.0 / math.Pi)
 }
+
 //================ END: DISTANCE SERVICE ==============
-const MAX_TRIP = 4; // this should not have any impact, distance not based on ID any more, but maybe it will help a bit
+const MAX_TRIP = 4 // this should not have any impact, distance not based on ID any more, but maybe it will help a bit
 
 func RandomTo(from int, maxStand int) int {
-	diff := rand.Intn(MAX_TRIP * 2) - MAX_TRIP;
-	if diff == 0 { diff = 1 }
-	to := 0;
-	if from + diff > maxStand -1 { 
-		to = from - diff 
-	} else if from + diff < 0 { 
-		to = 0 
-	} else { to = from + diff; }
-	return to;
+	diff := rand.Intn(MAX_TRIP*2) - MAX_TRIP
+	if diff == 0 {
+		diff = 1
+	}
+	to := 0
+	if from+diff > maxStand-1 {
+		to = from - diff
+	} else if from+diff < 0 {
+		to = 0
+	} else {
+		to = from + diff
+	}
+	return to
 }
