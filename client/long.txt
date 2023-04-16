@@ -1,2 +1,0 @@
-2022/08/12 10:42:40 Duration in pool was too long,  - duration: 23, distance: 12, Loss: 70, 23>22.400000, cust_id=2140, order_id=172601, cab_id=2236,
-2022/08/12 10:51:26 Duration in pool was too long,  - duration: 19, distance: 10, Loss: 70, 19>19.000000, cust_id=7539, order_id=178000, cab_id=464,
