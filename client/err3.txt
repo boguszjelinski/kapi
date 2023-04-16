@@ -1,0 +1,639 @@
+order 214198 cab_id=821 cust_id=3, route_id=15 leg_id=76 !!! trzeba
+poprawiac leg_id w taxi_order w extenderze!!!
+
+2022/08/13 23:33:44 Request cust_id=3, from=3202 to=3203
+2022/08/13 23:33:44 Cab requested, cust_id=3, order_id=214198
+2022/08/13 23:33:59 Assigned, cust_id=3, order_id=214198, cab_id=821,
+2022/08/13 23:33:59 Accepted, waiting for that cab, cust_id=3, order_id=214198, cab_id=821,
+2022/08/13 23:51:59 Cab has not arrived, cust_id=3, order_id=214198, cab_id=821,
+
+2022/08/13 23:32:13 Starting my shift, cab_id=821,
+2022/08/13 23:32:13 Updating cab_id=821, free at: 821
+2022/08/13 23:33:58 New route to run, cab_id=821, route_id=15,
+2022/08/13 23:34:58 Cab cab_id=821, is moving from 821 to 4302, leg_id=73,
+2022/08/13 23:36:58 Cab cab_id=821, is moving from 4302 to 2740, leg_id=74,
+2022/08/13 23:38:58 Cab cab_id=821, is moving from 2740 to 2739, leg_id=282,
+2022/08/13 23:40:58 Cab cab_id=821, is moving from 2739 to 3962, leg_id=283,
+2022/08/13 23:46:58 Cab cab_id=821, is moving from 3962 to 2445, leg_id=2350,
+2022/08/13 23:49:59 Cab cab_id=821, is moving from 2445 to 2446, leg_id=2989,
+2022/08/13 23:56:59 Cab cab_id=821, is moving from 2446 to 3958, leg_id=2990,
+2022/08/13 23:59:59 Cab cab_id=821, is moving from 3958 to 4304, leg_id=2351,
+
+id	completed	distance  from_stand	place	started		   status   to_stand    route_id  reserve
+73	2022-08-13 21:35:57	1	821	0	2022-08-13 21:34:57	6	4302	15	3
+74	2022-08-13 21:37:57	1	4302	1	2022-08-13 21:36:57	6	2740	15	2
+282	2022-08-13 21:39:57	1	2740	2	2022-08-13 21:38:57	6	2739	15	1
+283	2022-08-13 21:45:57	5	2739	3	2022-08-13 21:40:57	6	3962	15	0
+2350	2022-08-13 21:48:57	2	3962	4	2022-08-13 21:46:57	6	2445	15	1
+2989	2022-08-13 21:55:57	4	2445	5	2022-08-13 21:49:57	6	2446	15	0
+2990	2022-08-13 21:58:57	2	2446	6	2022-08-13 21:56:57	6	3958	15	0
+2351	2022-08-13 22:00:58	1	3958	7	2022-08-13 21:59:58	6	4304	15	1
+75	2022-08-13 22:02:58	1	4304	8	2022-08-13 22:01:58	6	3202	15	3
+76	2022-08-13 22:04:58	1	3202	9	2022-08-13 22:03:58	6	3203	15	0
+
+2022-08-13 23:33:52 DEBUG - Adding leg to route: id=73, route_id=15, from=821, to=4302, place=0, reserve=3, routine assignCab
+INSERT INTO leg (id, from_stand, to_stand, place, distance, status, reserve, route_id) VALUES (73,821,4302,0,   1,   1,3,15);
+2022-08-13 23:33:52 DEBUG - assign_orders_and_save_legs: route_id=15, cab_id=821, pool=214197105,214197111,214198105,214198111,
+2022-08-13 23:33:52 DEBUG - Adding leg to route: id=74, route_id=15, from=4302, to=4304, place=1, reserve=3, routine assignOrdersAndSaveLegs
+INSERT INTO leg (id, from_stand, to_stand, place, distance, status, reserve, route_id) VALUES (74,4302,4304,1,  8,   1,3,15);
+2022-08-13 23:33:52 DEBUG - Assigning order_id=214197 to cab_id=821, route_id=15, leg_id=74, routine assignOrdersAndSaveLegs1
+2022-08-13 23:33:52 DEBUG - Adding leg to route: id=75, route_id=15, from=4304, to=3202, place=2, reserve=3, routine assignOrdersAndSaveLegs
+INSERT INTO leg (id, from_stand, to_stand, place, distance, status, reserve, route_id) VALUES (75,4304,3202,2,  1,   1,3,15);
+2022-08-13 23:33:52 DEBUG - Adding leg to route: id=76, route_id=15, from=3202, to=3203, place=3, reserve=0, routine assignOrdersAndSaveLegs
+2022-08-13 23:33:52 DEBUG - Assigning order_id=214198 to cab_id=821, route_id=15, leg_id=76, routine assignOrdersAndSaveLegs1
+INSERT INTO leg (id, from_stand, to_stand, place, distance, status, reserve, route_id) VALUES (76,3202,3203,3,  1,   1,0,15);
+// ostatni mial wait time 1 + (1) + 8 + (1) + 1 = 12 czyli !! 3 rezerwy w
+// poprzednich nogach, bo 15 - 12
+-------
+2022-08-13 23:34:32 DEBUG - new, extended IN leg_id=74, route=15, place=2, prev_reserve=3-distance_diff=1=new_reserve=2, diff=1+1+7-8
+2022-08-13 23:34:32 DEBUG - Updating places in route_id=15 starting with place=2
+2022-08-13 23:34:32 DEBUG - Adding leg to route: id=282, route_id=15, from=2740, to=4304, place=2, reserve=2, routine route extender IN
+INSERT INTO leg (id, from_stand, to_stand, place, distance, status, reserve, route_id) VALUES (282,2740,4304,2,  7,  1,2,15);
+2022-08-13 23:34:32 DEBUG - Updating existing leg_id=74 to=2740 reserve=2
+UPDATE taxi_order SET route_id=15, leg_id=74, cab_id=821, status=1, eta=1, in_pool=true WHERE id=214197 AND status=0;
+// tu dystans zwiekszyl sie wylacznie o stop_wait, zamiast jednej nogi o
+// dystansie 8 mamy dwie 1+7
+2022-08-13 23:34:32 DEBUG - Assigning order_id=214478 to route_id=15, leg_id=282, routine extendRoute IN
+
+2022-08-13 23:34:32 DEBUG - Adding leg to route: id=283, route_id=15, from=2739, to=4304, place=3, reserve=1, routine route extender OUT
+2022-08-13 23:37:11 DEBUG - new, extended IN leg_id=283, route=15, place=4, prev_reserve=1-distance_diff=1=new_reserve=0, diff=5+1+3-8
+!!! 283 is OUT, why we have IN and OUT here?????
+2022-08-13 23:37:11 DEBUG - new, extended OUT leg_id=283, route=15, place=5, prev_reserve=1-distance_diff=0=new_reserve=1, diff=6+1+1-8
+INSERT INTO leg (id, from_stand, to_stand, place, distance, status, reserve, route_id) VALUES (283,2739,4304,3,  8,   1,1,15);
+UPDATE leg SET to_stand=2739, distance=1, reserve=1 WHERE id=282;  
+// tu powyzej przedluzona noge znowu przedluzamy, rozbijamy dodana droge o
+// dlugosci 7 znowu o przystanek, miedzy przystankami 2740 a 4304
+// wrzucilismy przystanek 2739
+// ERROR - widac, za w kalkulacji distance drogi 2740-4304 wzial 8 a ta
+// dlugosc wynosi 7, konsekwencja bledu jest, ze DIFF jest mniejszy, czyli
+// rezerwa wieksza !!!
+// zapomnialem zaktualizowac DISTANCE w vektorze !!!
+
+UPDATE taxi_order AS o SET route_id=15, leg_id=282, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=15 AND o.id=214478 AND o.status=0;UPDATE leg SET place=place+1 WHERE route_id=15 AND place >= 3;
+2022-08-13 23:37:11 DEBUG - Adding leg to route: id=2350, route_id=15, from=3962, to=4304, place=4, reserve=0, routine route extender IN
+2022-08-13 23:37:11 DEBUG - Assigning order_id=215600 to route_id=15, leg_id=2350, routine extendRoute IN
+2022-08-13 23:37:11 DEBUG - Adding leg to route: id=2351, route_id=15, from=3958, to=4304, place=5, reserve=1, routine route extender OUT
+UPDATE taxi_order AS o SET route_id=15, leg_id=2350, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=15 AND o.id=215600 AND o.status=0;UPDATE leg SET place=place+1 WHERE route_id=15 AND place >= 5;
+2022-08-13 23:37:58 DEBUG - Adding leg to route: id=2989, route_id=15, from=2445, to=3958, place=5, reserve=1, routine route extender IN
+2022-08-13 23:37:58 DEBUG - Assigning order_id=215932 to route_id=15, leg_id=2989, routine extendRoute IN
+2022-08-13 23:37:58 DEBUG - Adding leg to route: id=2990, route_id=15, from=2446, to=3958, place=6, reserve=0, routine route extender OUT
+UPDATE taxi_order AS o SET route_id=15, leg_id=2989, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=15 AND o.id=215932 AND o.status=0;UPDATE leg SET place=place+1 WHERE route_id=15 AND place >= 6;
+
+===================================
+order_id=223085 from 4918 to 4916 route_id=366 cust_id=1176  cab_id=1698
+2022/08/14 01:54:05 Request cust_id=1176, from=4918 to=4916
+2022/08/14 01:54:05 Cab requested, cust_id=1176, order_id=223085
+2022/08/14 01:54:20 Assigned, cust_id=1176, order_id=223085, cab_id=1698,
+2022/08/14 01:54:20 Accepted, waiting for that cab, cust_id=1176, order_id=223085, cab_id=1698,
+2022/08/14 02:12:20 Cab has not arrived, cust_id=1176, order_id=223085, cab_id=1698,
+
+2022/08/14 01:50:10 Starting my shift, cab_id=1698,
+2022/08/14 01:50:10 Updating cab_id=1698, free at: 1698
+2022/08/14 01:54:10 New route to run, cab_id=1698, route_id=366,
+2022/08/14 01:55:10 Cab cab_id=1698, is moving from 1698 to 4394, leg_id=1865,
+2022/08/14 01:57:10 Cab cab_id=1698, is moving from 4394 to 3327, leg_id=1866,
+2022/08/14 02:01:10 Cab cab_id=1698, is moving from 3327 to 3329, leg_id=2615,
+2022/08/14 02:09:10 Cab cab_id=1698, is moving from 3329 to 4918, leg_id=2616,
+
+3 orders:
+222951 23:53:45 4394->4395 dist 1 leg_id=1766 (cab mial dystansu 1 wiec WAIT
+14, ale reserve==14 absolutnie nie moze byc na leg place=1 bo rozwala
+MAX_LOSS !!!!!!!!!!!!!!) do poprawy
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+223085 23:54:03 4918->4916 dist 4 leg_id=1890
+223458 23:54:56 3327->3329 dist 7 leg_id=2615
+
+id	completed	 distance  from_stand	place	started		   status   to_stand route_id	reserve
+1865	2022-08-13 23:56:09	1	1698	0	2022-08-13 23:55:09	6	4394	366	14
+1866	2022-08-14 00:00:09	3	4394	1	2022-08-13 23:57:09	6	3327	366	3
+2615	2022-08-14 00:08:09	4	3327	2	2022-08-14 00:01:09	6	3329	366	0
+2616	2022-08-14 00:14:09	5	3329	3	2022-08-14 00:09:09	6	4918	366	0
+1890	(null)			7	4918	4	(null)			1	4916	366	0
+1891	(null)			6	4916	5	(null)			1	4395	366	0
+
+1) MUNKRES, 
+2022-08-14 01:54:03 DEBUG - Adding leg to route: id=1865, route_id=366, from=1698, to=4394, place=0, distance=1, reserve=14, routine assignCab
+2022-08-14 01:54:03 DEBUG - Adding leg to route: id=1866, route_id=366, from=4394, to=4395, place=1, distance=1, reserve=14, routine assignCustToCabMunkres
+2022-08-14 01:54:03 DEBUG - Assigning order_id=222951 to cab_id=1698, route_id=366, leg_id=1866, routine assignOrderToCab
+UPDATE taxi_order SET route_id=366, leg_id=1866, cab_id=1698, status=1, eta=1, in_pool=false WHERE id=222951 AND status=0;
+
+2) wpada 223085, wydluza leg z dist=1, teraz przejazd z 4394 do 4395 zajmie 7, stad reserve=8 
+order from 4918 to 4916, bedziemy cos robic z leg from 4394 to 4395, a
+dokladnie 4394->4918->4395
+
+2022-08-14 01:54:08 DEBUG - new, extended IN leg_id=1866, route_id=366, place=2, prev_reserve=14-distance_diff=6=new_reserve=8, diff=3+1+3-1
+2022-08-14 01:54:08 DEBUG - Updating places in route_id=366 starting with place=2
+2022-08-14 01:54:08 DEBUG - Adding leg to route: id=1890, route_id=366, from=4918, to=4395, place=2, distance=3, reserve=8, routine route extender IN
+2022-08-14 01:54:08 DEBUG - Updating existing leg_id=1866 to=4918 reserve=8
+2022-08-14 01:54:08 DEBUG - Assigning order_id=223085 to route_id=366, leg_id=1890, routine extendRoute IN
+
+OUT tez trafil w te noge, wydluzymy 4394->4918->4916->4395, treba tez poprawic nowa leg 1890
+4918->4395 miala dystans 3, ale co wazniejsze - miala rezerwe 8, i teraz
+chcemy rozszerzyc te noge do 7+1+6, to absolutnie wykracza poza reserve, nie
+policzylismy tego w extenderze !!!!!!!!!!!!!!!
+
+
+2022-08-14 01:54:08 DEBUG - new, extended OUT leg_id=1866, route_id=366, place=3, prev_reserve=8-distance_diff=13=new_reserve=0, diff=7+1+6-1
+!!!!!! jak -1??? to jest stara odleglosc 4394->4395, 4918-4395 ma odleglosc 3
+
+2022-08-14 01:54:08 DEBUG - Updating existing leg_id=1890 to=4916 reserve=0
+2022-08-14 01:54:08 DEBUG - Updating places in route_id=366 starting with place=3
+2022-08-14 01:54:08 DEBUG - Adding leg to route: id=1891, route_id=366, from=4916, to=4395, place=3, distance=6, reserve=0, routine route extender OUT
+UPDATE leg SET place=place+1 WHERE route_id=366 AND place >= 2;
+UPDATE taxi_order AS o SET route_id=366, leg_id=1890, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=366 AND o.id=223085 AND o.status=0;UPDATE leg SET place=place+1 WHERE route_id=366 AND place >= 3;
+2022-08-14 01:55:05 DEBUG - new, extended IN leg_id=1866, route_id=366, place=2, prev_reserve=8-distance_diff=5=new_reserve=3, diff=3+1+4-3
+2022-08-14 01:55:05 DEBUG - Updating places in route_id=366 starting with place=2
+2022-08-14 01:55:05 DEBUG - Adding leg to route: id=2615, route_id=366, from=3327, to=4918, place=2, distance=4, reserve=3, routine route extender IN
+2022-08-14 01:55:05 DEBUG - Assigning order_id=223458 to route_id=366, leg_id=2615, routine extendRoute IN
+2022-08-14 01:55:05 DEBUG - new, extended OUT leg_id=1866, route_id=366, place=3, prev_reserve=3-distance_diff=7=new_reserve=0, diff=4+1+5-3
+2022-08-14 01:55:05 DEBUG - Updating places in route_id=366 starting with place=3
+2022-08-14 01:55:05 DEBUG - Adding leg to route: id=2616, route_id=366, from=3329, to=4918, place=3, distance=5, reserve=0, routine route extender OUT
+UPDATE leg SET place=place+1 WHERE route_id=366 AND place >= 2;
+UPDATE taxi_order AS o SET route_id=366, leg_id=2615, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=366 AND o.id=223458 AND o.status=0;UPDATE leg SET place=place+1 WHERE route_id=366 AND place >= 3;
+
+++++++++++++++++++
+order 230978  cab_id=1713 route_id=15 from 3202 to 3203 leg_id=77
+
+2022/08/14 18:03:00 Cab requested, cust_id=3, order_id=230978
+2022/08/14 18:03:15 Assigned, cust_id=3, order_id=230978, cab_id=1713,
+2022/08/14 18:03:15 Accepted, waiting for that cab, cust_id=3, order_id=230978, cab_id=1713,
+2022/08/14 18:21:15 Cab has not arrived, cust_id=3, order_id=230978, cab_id=1713,
+
+2022/08/14 18:02:31 Starting my shift, cab_id=1713,
+2022/08/14 18:02:31 Updating cab_id=1713, free at: 1713
+2022/08/14 18:03:16 New route to run, cab_id=1713, route_id=15,
+2022/08/14 18:04:16 Cab cab_id=1713, is moving from 1713 to 4302, leg_id=74,
+2022/08/14 18:06:16 Cab cab_id=1713, is moving from 4302 to 3584, leg_id=75,
+2022/08/14 18:13:16 Cab cab_id=1713, is moving from 3584 to 2850, leg_id=284,
+2022/08/14 18:16:16 Cab cab_id=1713, is moving from 2850 to 2476, leg_id=96,
+2022/08/14 18:19:16 Cab cab_id=1713, is moving from 2476 to 2479, leg_id=2979,
+2022/08/14 18:21:16 Cab cab_id=1713, is moving from 2479 to 3582, leg_id=2980,
+2022/08/14 18:24:16 Cab cab_id=1713, is moving from 3582 to 2851, leg_id=285,
+2022/08/14 18:28:16 Cab cab_id=1713, is moving from 2851 to 4304, leg_id=97,
+2022/08/14 18:30:16 Cab cab_id=1713, is moving from 4304 to 3202, leg_id=76,
+2022/08/14 18:32:16 Cab cab_id=1713, is moving from 3202 to 3203, leg_id=77,
+
+Kern:
+2022-08-14 18:03:09 WARN - Max loss of order 230978 is not met
+2022-08-14 18:03:09 DEBUG - assign_orders_and_save_legs: route_id=15, cab_id=1713, pool=230977105,230977111,230978105,230978111,
+2022-08-14 18:03:09 DEBUG - Adding leg to route: leg_id=77, route_id=15, order_id=230978, from=3202, to=3203, place=3, distance=1, reserve=0, routine assignOrdersAndSaveLegs
+2022-08-14 18:03:09 DEBUG - Assigning order_id=230978 to cab_id=1713, route_id=15, leg_id=77, routine assignOrdersAndSaveLegs1
+UPDATE taxi_order SET route_id=15, leg_id=77, cab_id=1713, status=1, eta=10, in_pool=true WHERE id=230978 AND status=0;
+
+route_id15:
+2022-08-14 18:03:09 DEBUG - Adding leg to route: leg_id=74, route_id=15, order_id=230977, from=1713, to=4302, place=0, distance=1, reserve=3, routine assignCab
+2022-08-14 18:03:09 DEBUG - assign_orders_and_save_legs: route_id=15, cab_id=1713, pool=230977105,230977111,230978105,230978111,
+2022-08-14 18:03:09 DEBUG - Adding leg to route: leg_id=75, route_id=15, order_id=230977, from=4302, to=4304, place=1, distance=8, reserve=3, routine assignOrdersAndSaveLegs
+2022-08-14 18:03:09 DEBUG - Assigning order_id=230977 to cab_id=1713, route_id=15, leg_id=75, routine assignOrdersAndSaveLegs1
+2022-08-14 18:03:09 DEBUG - Adding leg to route: leg_id=76, route_id=15, order_id=230977, from=4304, to=3202, place=2, distance=1, reserve=3, routine assignOrdersAndSaveLegs
+2022-08-14 18:03:09 DEBUG - Adding leg to route: leg_id=77, route_id=15, order_id=230978, from=3202, to=3203, place=3, distance=1, reserve=0, routine assignOrdersAndSaveLegs
+2022-08-14 18:03:09 DEBUG - Assigning order_id=230978 to cab_id=1713, route_id=15, leg_id=77, routine assignOrdersAndSaveLegs1
+UPDATE taxi_order SET route_id=15, leg_id=75, cab_id=1713, status=1, eta=1, in_pool=true WHERE id=230977 AND status=0;
+UPDATE taxi_order SET route_id=15, leg_id=77, cab_id=1713, status=1, eta=10, in_pool=true WHERE id=230978 AND status=0;
+
+inicjalny plan: 1713 -(1)-> 4302 -(8)-> 4304 -(1)-> 3202 -(1)-> 3203
+
+96:  4302 -(7)-> 2850 -(1)-> 4304
+2022-08-14 18:03:23 DEBUG - new, extended IN leg_id=75, route_id=15, place=2, prev_reserve=3-distance_diff=1=new_reserve=2, diff=7+1+1-8
+2022-08-14 18:03:23 DEBUG - Adding leg to route: leg_id=96, route_id=15, order_id=231032, from=2850, to=4304, place=2, distance=1, reserve=2, routine route extender IN
+2022-08-14 18:03:23 DEBUG - Updating existing route_id=15, leg_id=75, to=2850 reserve=2
+2022-08-14 18:03:23 DEBUG - Assigning order_id=231032 to route_id=15, leg_id=96, routine extendRoute IN
+
+97:  4302 -(7)-> 2850 -(1)-> 2851 -()-> 4304 
+
+2022-08-14 18:03:23 DEBUG - new, extended OUT leg_id=75, route_id=15, place=3, prev_reserve=2-distance_diff=1=new_reserve=1, diff=7+1+1-8
+// na pewno nie -1, bo rozszerzamy leg with distance 1
+2022-08-14 18:03:23 DEBUG - Adding leg to route: leg_id=97, route_id=15, order_id=231032, from=2851, to=4304, place=3, distance=1, reserve=1, routine route extender OUT
+2022-08-14 18:03:23 DEBUG - Updating existing route_id=15, leg_id=96, to=2851 reserve=1
+UPDATE taxi_order AS o SET route_id=15, leg_id=96, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=15 AND o.id=231032 AND o.status=0;
+2022-08-14 18:03:51 DEBUG - new, extended IN leg_id=75, route_id=15, place=2, prev_reserve=2-distance_diff=2=new_reserve=0, diff=6+1+2-7
+2022-08-14 18:03:51 DEBUG - Adding leg to route: leg_id=284, route_id=15, order_id=231255, from=3584, to=2850, place=2, distance=2, reserve=0, routine route extender IN
+2022-08-14 18:03:51 DEBUG - Updating existing route_id=15, leg_id=75, to=3584 reserve=0
+2022-08-14 18:03:51 DEBUG - Assigning order_id=231255 to route_id=15, leg_id=284, routine extendRoute IN
+2022-08-14 18:03:51 DEBUG - new, extended OUT leg_id=96, route_id=15, place=4, prev_reserve=0-distance_diff=1=new_reserve=0, diff=4+1+3-7
+2022-08-14 18:03:51 DEBUG - Adding leg to route: leg_id=285, route_id=15, order_id=231255, from=3582, to=2851, place=4, distance=3, reserve=0, routine route extender OUT
+2022-08-14 18:03:51 DEBUG - Updating existing route_id=15, leg_id=96, to=3582 reserve=0
+UPDATE taxi_order AS o SET route_id=15, leg_id=284, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=15 AND o.id=231255 AND o.status=0;
+2022-08-14 18:07:25 DEBUG - new, extended IN leg_id=96, route_id=15, place=4, prev_reserve=0-distance_diff=0=new_reserve=0, diff=2+1+1-4
+2022-08-14 18:07:25 DEBUG - Adding leg to route: leg_id=2979, route_id=15, order_id=232748, from=2476, to=3582, place=4, distance=1, reserve=0, routine route extender IN
+2022-08-14 18:07:25 DEBUG - Updating existing route_id=15, leg_id=96, to=2476 reserve=0
+2022-08-14 18:07:25 DEBUG - Assigning order_id=232748 to route_id=15, leg_id=2979, routine extendRoute IN
+2022-08-14 18:07:25 DEBUG - new, extended OUT leg_id=96, route_id=15, place=5, prev_reserve=0-distance_diff=0=new_reserve=0, diff=1+1+2-4
+2022-08-14 18:07:25 DEBUG - Adding leg to route: leg_id=2980, route_id=15, order_id=232748, from=2479, to=3582, place=5, distance=2, reserve=0, routine route extender OUT
+2022-08-14 18:07:25 DEBUG - Updating existing route_id=15, leg_id=2979, to=2479 reserve=0
+UPDATE taxi_order AS o SET route_id=15, leg_id=2979, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=15 AND o.id=232748 AND o.status=0;
+
+==============
+order_id=238742  cab_id=859 from2176 to 2179 cust_id=53  leg_id=118, route_id=23
+2022/08/15 10:20:07 Request cust_id=53, from=2176 to=2179
+2022/08/15 10:20:07 Cab requested, cust_id=53, order_id=238742
+2022/08/15 10:20:52 Assigned, cust_id=53, order_id=238742, cab_id=859,
+2022/08/15 10:20:52 Accepted, waiting for that cab, cust_id=53, order_id=238742, cab_id=859,
+2022/08/15 10:38:52 Cab has not arrived, cust_id=53, order_id=238742, cab_id=859,
+
+2022/08/15 10:15:49 Starting my shift, cab_id=859,
+2022/08/15 10:15:49 Updating cab_id=859, free at: 859
+2022/08/15 10:20:50 New route to run, cab_id=859, route_id=23,
+2022/08/15 10:21:50 Cab cab_id=859, is moving from 859 to 874, leg_id=115,
+2022/08/15 10:25:50 Cab cab_id=859, is moving from 874 to 857, leg_id=116,
+2022/08/15 10:29:50 Cab cab_id=859, is moving from 857 to 2413, leg_id=117,
+2022/08/15 10:34:50 Cab cab_id=859, is moving from 2176 to 875, leg_id=118,
+2022/08/15 10:39:50 Cab cab_id=859, is moving from 875 to 1025, leg_id=119,
+2022/08/15 10:42:50 Cab cab_id=859, is moving from 1025 to 2414, leg_id=4453,
+2022/08/15 10:45:50 Cab cab_id=859, is moving from 2413 to 2176, leg_id=2915,
+
+id	completed	distance  from_stand	place	started		    status  to_stand  route_id	reserve
+115	2022-08-15 08:24:50	3	859	0	2022-08-15 08:21:50	6	874	23	0
+116	2022-08-15 08:28:50	3	874	1	2022-08-15 08:25:50	6	857	23	0
+117	2022-08-15 08:33:50	4	857	2	2022-08-15 08:29:50	6	2413	23	0
+118	2022-08-15 08:38:50	4	2176	3	2022-08-15 08:34:50	6	875	23	0
+119	2022-08-15 08:41:50	2	875	4	2022-08-15 08:39:50	6	1025	23	1
+4453	2022-08-15 08:44:50	2	1025	5	2022-08-15 08:42:50	6	2414	23	1
+2915	2022-08-15 08:46:50	1	2413	6	2022-08-15 08:45:50	6	2176	23	0
+2916	(null)			6	2414	9	(null)			1	1028	23	0
+4454	(null)			3	1028	10	(null)			1	2179	23	0
+
+==========================================================
+route_id place	from_stand	to_stand	route_id	place	from_stand	to_stand
+108	4	1386	218	108	5	1142	220
+173	2	4404	5009	173	3	408	4480
+190	3	1005	1352	190	4	1044	1353
+190	4	1044	1353	190	5	1045	4728
+
+id completed distance from_stand place	started		    status   to_stand	route_id reserve
+432	(null)	4	2207	0	2022-08-15 11:10:43	5	2205	108	0 254392, 254473 
+433	(null)	1	2205	1	(null)			1	2203	108	0
+434	(null)	4	2203	2	(null)			1	1139	108	0
+435	(null)	2	1139	3	(null)			1	1386	108	0 254462
+436	(null)	2	1386	4	(null)			1	218	108	0 254396 !! tu sie cos posralo
+437	(null)	8	1142	5	(null)			1	220	108	0
+1479	(null)	4	218	7	(null)			1	1142	108	0 255111
+1480	(null)	5	220	9	(null)			1	1388	108	0
+
+missing 6
+
+id  at_time completed distance	eta from_stand	in_pool	max_loss max_wait  received		shared	started		  status    to_stand cab_id  customer_id leg_id route_id
+254392	(null)	(null)	4	0	2207	true	70	15	2022-08-15 11:09:01	false	2022-08-15 11:10:01	7	2205	2207	275	432	108
+254396	(null)	(null)	14	11	1386	true	70	15	2022-08-15 11:09:02	false	(null)			2	1388	2207	279	436	108
+254462	(null)	(null)	9	9	1139	true	70	15	2022-08-15 11:09:11	false	(null)			2	1142	2207	345	435	108
+254473	(null)	(null)	5	0	2207	true	70	15	2022-08-15 11:09:13	false	2022-08-15 11:09:58	7	2203	2207	356	(null)	108
+255111	(null)	(null)	12	0	218	false	70	15	2022-08-15 11:10:43	false	(null)			2	220	2207	994	1479	108
+
+2022-08-15 13:09:32 DEBUG - assign_orders_and_save_legs: route_id=108, cab_id=2207, pool=254473i,254392i,254392o,254473o,254462i,254396i,254462o,254396o,
+2022-08-15 13:09:32 DEBUG - Assigning order_id=254473 to cab_id=2207, route_id=108, NO LEG, routine assignOrdersAndSaveLegs2
+2022-08-15 13:09:32 DEBUG - Adding leg to route: leg_id=432, route_id=108, order_id=254392, from=2207, to=2205, place=0, distance=4, reserve=0, routine assignOrdersAndSaveLegs
+2022-08-15 13:09:32 DEBUG - Assigning order_id=254392 to cab_id=2207, route_id=108, leg_id=432, routine assignOrdersAndSaveLegs1
+2022-08-15 13:09:32 DEBUG - Adding leg to route: leg_id=433, route_id=108, order_id=254392, from=2205, to=2203, place=1, distance=1, reserve=0, routine assignOrdersAndSaveLegs
+2022-08-15 13:09:32 DEBUG - Adding leg to route: leg_id=434, route_id=108, order_id=254473, from=2203, to=1139, place=2, distance=4, reserve=0, routine assignOrdersAndSaveLegs
+2022-08-15 13:09:32 DEBUG - Adding leg to route: leg_id=435, route_id=108, order_id=254462, from=1139, to=1386, place=3, distance=2, reserve=0, routine assignOrdersAndSaveLegs
+2022-08-15 13:09:32 DEBUG - Assigning order_id=254462 to cab_id=2207, route_id=108, leg_id=435, routine assignOrdersAndSaveLegs1
+2022-08-15 13:09:32 DEBUG - Adding leg to route: leg_id=436, route_id=108, order_id=254396, from=1386, to=1142, place=4, distance=7, reserve=0, routine assignOrdersAndSaveLegs
+2022-08-15 13:09:32 DEBUG - Assigning order_id=254396 to cab_id=2207, route_id=108, leg_id=436, routine assignOrdersAndSaveLegs1
+2022-08-15 13:09:32 DEBUG - Adding leg to route: leg_id=437, route_id=108, order_id=254462, from=1142, to=1388, place=5, distance=7, reserve=7, routine assignOrdersAndSaveLegs
+UPDATE taxi_order SET route_id=108, cab_id=2207, status=1, eta=0, in_pool=true WHERE id=254473 AND status=0;
+UPDATE taxi_order SET route_id=108, leg_id=432, cab_id=2207, status=1, eta=0, in_pool=true WHERE id=254392 AND status=0;
+UPDATE taxi_order SET route_id=108, leg_id=435, cab_id=2207, status=1, eta=9, in_pool=true WHERE id=254462 AND status=0;
+UPDATE taxi_order SET route_id=108, leg_id=436, cab_id=2207, status=1, eta=11, in_pool=true WHERE id=254396 AND status=0;
+
+2022-08-15 13:10:48 DEBUG - new, extended IN leg_id=436, route_id=108, place=7, prev_reserve=0-distance_diff=0=new_reserve=0, diff=2+1+4-7
+2022-08-15 13:10:48 DEBUG - Adding leg to route: leg_id=1479, route_id=108, order_id=255111, from=218, to=1142, place=7, distance=4, reserve=0, routine route extender IN
+2022-08-15 13:10:48 DEBUG - Updating existing route_id=108, leg_id=436, to=218 reserve=0
+2022-08-15 13:10:48 DEBUG - Assigning order_id=255111 to route_id=108, leg_id=1479, routine extendRoute IN
+2022-08-15 13:10:48 DEBUG - new, extended OUT leg_id=437, route_id=108, place=9, prev_reserve=7-distance_diff=7=new_reserve=0, diff=8+1+5-7
+2022-08-15 13:10:48 DEBUG - Adding leg to route: leg_id=1480, route_id=108, order_id=255111, from=220, to=1388, place=9, distance=5, reserve=0, routine route extender OUT
+2022-08-15 13:10:48 DEBUG - Updating existing route_id=108, leg_id=437, to=220 reserve=0
+UPDATE taxi_order AS o SET route_id=108, leg_id=1479, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=108 AND o.id=255111 AND o.status=0;
+
+2207 -> 2205 -> 2203 -> 1139 -> 1386 -> 1142 -> 1388
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++
+order_id=255352 cab_id=26 cust_id=131 route_id=50  from 5072  to 5075 dist=14
+
+2022/08/15 15:11:34 Request cust_id=131, from=5072 to=5075
+2022/08/15 15:11:34 Cab requested, cust_id=131, order_id=255352
+2022/08/15 15:12:04 Assigned, cust_id=131, order_id=255352, cab_id=26,
+2022/08/15 15:12:04 Accepted, waiting for that cab, cust_id=131, order_id=255352, cab_id=26,
+2022/08/15 15:14:19 Picked up, cust_id=131, order_id=255352, cab_id=26,
+2022/08/15 15:44:20 Something wrong - customer has never reached the destination, cust_id=131, order_id=255352, cab_id=26,
+2022/08/15 15:44:20 Status is not COMPLETED, cancelling the trip, cust_id=131, order_id=255352, cab_id=26,
+
+2022/08/15 15:08:40 Starting my shift, cab_id=26,
+2022/08/15 15:08:40 Updating cab_id=26, free at: 26
+2022/08/15 15:12:10 New route to run, cab_id=26, route_id=50,
+2022/08/15 15:13:10 Cab cab_id=26, is moving from 26 to 5072, leg_id=211,
+2022/08/15 15:15:10 Cab cab_id=26, is moving from 5072 to 1194, leg_id=212,
+2022/08/15 15:22:10 Cab cab_id=26, is moving from 1194 to 1046, leg_id=779,
+2022/08/15 15:24:10 Cab cab_id=26, is moving from 1046 to 1195, leg_id=552,
+2022/08/15 15:26:10 Cab cab_id=26, is moving from 1195 to 5056, leg_id=780,
+2022/08/15 15:36:11 Cab cab_id=26, is moving from 5056 to 5057, leg_id=230,
+2022/08/15 15:44:11 Cab cab_id=26, is moving from 5057 to 1042, leg_id=231,
+2022/08/15 15:51:11 Cab cab_id=26, is moving from 1042 to 5075, leg_id=553,
+
+2022-08-15 15:12:03 DEBUG - Adding leg to route: leg_id=211, route_id=50, order_id=255352, from=26, to=5072, place=0, distance=1, reserve=14, routine assignCab
+2022-08-15 15:12:03 DEBUG - Adding leg to route: leg_id=212, route_id=50, order_id=255352, from=5072, to=5075, place=1, distance=14, reserve=14, routine assignCustToCabMunkres
+2022-08-15 15:12:03 DEBUG - Assigning order_id=255352 to cab_id=26, route_id=50, leg_id=212, routine assignOrderToCab
+UPDATE taxi_order SET route_id=50, leg_id=212, cab_id=26, status=1, eta=1, in_pool=false WHERE id=255352 AND status=0;
+
+2022-08-15 15:12:03 DEBUG - new, extended IN leg_id=212, route_id=50, place=2, prev_reserve=14-distance_diff=0=new_reserve=14, diff=4+1+9-14
+2022-08-15 15:12:03 DEBUG - Adding leg to route: leg_id=230, route_id=50, order_id=255487, from=5056, to=5075, place=2, distance=9, reserve=14, routine route extender IN
+2022-08-15 15:12:03 DEBUG - Updating existing route_id=50, leg_id=212, to=5056 reserve=14
+2022-08-15 15:12:03 DEBUG - Assigning order_id=255487 to route_id=50, leg_id=230, routine extendRoute IN
+2022-08-15 15:12:03 DEBUG - new, extended OUT leg_id=212, route_id=50, place=3, prev_reserve=14-distance_diff=10=new_reserve=4, diff=4+1+7+1+11-14
+2022-08-15 15:12:03 DEBUG - Adding leg to route: leg_id=231, route_id=50, order_id=255487, from=5057, to=5075, place=3, distance=11, reserve=4, routine route extender OUT
+2022-08-15 15:12:03 DEBUG - Updating existing route_id=50, leg_id=230, to=5057 reserve=4
+UPDATE taxi_order AS o SET route_id=50, leg_id=230, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=50 AND o.id=255487 AND o.status=0;
+2022-08-15 15:12:19 DEBUG - new, extended IN leg_id=212, route_id=50, place=2, prev_reserve=14-distance_diff=10=new_reserve=4, diff=5+1+8-4
+2022-08-15 15:12:19 DEBUG - Adding leg to route: leg_id=552, route_id=50, order_id=255592, from=1046, to=5056, place=2, distance=8, reserve=4, routine route extender IN
+2022-08-15 15:12:19 DEBUG - Updating existing route_id=50, leg_id=212, to=1046 reserve=4
+2022-08-15 15:12:19 DEBUG - Assigning order_id=255592 to route_id=50, leg_id=552, routine extendRoute IN
+2022-08-15 15:12:19 WARN - Negative reserve while extending leg OUT leg_id=231, route_id=50, place=5
+2022-08-15 15:12:19 DEBUG - new, extended OUT leg_id=231, route_id=50, place=5, prev_reserve=0-distance_diff=1=new_reserve=0, diff=6+1+5-11
+2022-08-15 15:12:19 DEBUG - Adding leg to route: leg_id=553, route_id=50, order_id=255592, from=1042, to=5075, place=5, distance=5, reserve=0, routine route extender OUT
+2022-08-15 15:12:19 DEBUG - Updating existing route_id=50, leg_id=231, to=1042 reserve=0
+UPDATE taxi_order AS o SET route_id=50, leg_id=552, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=50 AND o.id=255592 AND o.status=0;
+2022-08-15 15:12:35 DEBUG - new, extended IN leg_id=212, route_id=50, place=2, prev_reserve=4-distance_diff=3=new_reserve=1, diff=6+1+1-5
+2022-08-15 15:12:35 DEBUG - Adding leg to route: leg_id=779, route_id=50, order_id=255715, from=1194, to=1046, place=2, distance=1, reserve=1, routine route extender IN
+2022-08-15 15:12:35 DEBUG - Updating existing route_id=50, leg_id=212, to=1194 reserve=1
+2022-08-15 15:12:35 DEBUG - Assigning order_id=255715 to route_id=50, leg_id=779, routine extendRoute IN
+2022-08-15 15:12:35 WARN - Negative reserve while extending leg OUT leg_id=552, route_id=50, place=4
+2022-08-15 15:12:35 DEBUG - new, extended OUT leg_id=552, route_id=50, place=4, prev_reserve=1-distance_diff=3=new_reserve=0, diff=1+1+9-8
+2022-08-15 15:12:35 DEBUG - Adding leg to route: leg_id=780, route_id=50, order_id=255715, from=1195, to=5056, place=4, distance=9, reserve=0, routine route extender OUT
+2022-08-15 15:12:35 DEBUG - Updating existing route_id=50, leg_id=552, to=1195 reserve=0
+UPDATE taxi_order AS o SET route_id=50, leg_id=779, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=50 AND o.id=255715 AND o.status=0;
+
+=========================
+order_id=270657 dist 5 from 34 to 32 cab_id=1363 cust_id=8 route_id=2707 leg_id=24
+order_id=270674 dist 1 from 1320 to 1319 cab_id=1320 cust_id=25 route_id=2718 leg_id=52
+
+2022/08/15 22:18:44 Request cust_id=8, from=34 to=32
+2022/08/15 22:18:44 Cab requested, cust_id=8, order_id=270657
+2022/08/15 22:18:59 Assigned, cust_id=8, order_id=270657, cab_id=1363,
+2022/08/15 22:18:59 Accepted, waiting for that cab, cust_id=8, order_id=270657, cab_id=1363,
+2022/08/15 22:37:00 Cab has not arrived, cust_id=8, order_id=270657, cab_id=1363,
+
+2022/08/15 22:15:24 Starting my shift, cab_id=1363,
+2022/08/15 22:15:24 Updating cab_id=1363, free at: 1363
+2022/08/15 22:18:54 New route to run, cab_id=1363, route_id=2707,
+2022/08/15 22:19:54 Cab cab_id=1363, is moving from 1363 to 1362, leg_id=22,
+2022/08/15 22:24:54 Cab cab_id=1363, is moving from 1362 to 184, leg_id=23,
+2022/08/15 22:28:54 Cab cab_id=1363, is moving from 184 to 186, leg_id=63,
+2022/08/15 22:30:54 Cab cab_id=1363, is moving from 186 to 307, leg_id=4091,
+2022/08/15 22:33:55 Cab cab_id=1363, is moving from 307 to 185, leg_id=3903,
+2022/08/15 22:35:55 Cab cab_id=1363, is moving from 185 to 308, leg_id=4092,
+2022/08/15 22:37:55 Cab cab_id=1363, is moving from 308 to 187, leg_id=3904,
+2022/08/15 22:39:55 Cab cab_id=1363, is moving from 187 to 34, leg_id=64,
+2022/08/15 22:41:55 Cab cab_id=1363, is moving from 34 to 32, leg_id=24,
+
+2022-08-15 22:18:49 DEBUG - assign_orders_and_save_legs: route_id=2707, cab_id=1363, pool=270650i,270650o,270657i,270657o,
+2022-08-15 22:18:49 DEBUG - Adding leg to route: leg_id=22, route_id=2707, order_id=270650, from=1363, to=1362, place=0, distance=4, reserve=1, routine assignOrdersAndSaveLegs
+2022-08-15 22:18:49 DEBUG - Assigning order_id=270650 to cab_id=1363, route_id=2707, leg_id=22, routine assignOrdersAndSaveLegs1
+2022-08-15 22:18:49 DEBUG - Adding leg to route: leg_id=23, route_id=2707, order_id=270650, from=1362, to=34, place=1, distance=6, reserve=3, routine assignOrdersAndSaveLegs
+2022-08-15 22:18:49 DEBUG - Adding leg to route: leg_id=24, route_id=2707, order_id=270657, from=34, to=32, place=2, distance=5, reserve=2, routine assignOrdersAndSaveLegs
+2022-08-15 22:18:49 DEBUG - Assigning order_id=270657 to cab_id=1363, route_id=2707, leg_id=24, routine assignOrdersAndSaveLegs1
+UPDATE taxi_order SET route_id=2707, leg_id=22, cab_id=1363, status=1, eta=0, in_pool=true WHERE id=270650 AND status=0;
+UPDATE taxi_order SET route_id=2707, leg_id=24, cab_id=1363, status=1, eta=10, in_pool=true WHERE id=270657 AND status=0;
+
+2022-08-15 22:19:04 DEBUG - new, extended IN leg_id=23, route_id=2707, place=2, prev_reserve=3-distance_diff=1=new_reserve=2, diff=3+1+3-6
+2022-08-15 22:19:04 DEBUG - Updating reserve in route_id=2707 starting with place=1, wait_diff=3
+2022-08-15 22:19:04 DEBUG - Updating places in route_id=2707 starting with place=2, dist_diff=1
+2022-08-15 22:19:04 DEBUG - Adding leg to route: leg_id=63, route_id=2707, order_id=270720, from=184, to=34, place=2, distance=3, reserve=2, routine route extender IN
+2022-08-15 22:19:04 DEBUG - Updating existing route_id=2707, leg_id=23, to=184 reserve=2
+2022-08-15 22:19:04 DEBUG - Assigning order_id=270720 to route_id=2707, leg_id=63, routine extendRoute IN
+2022-08-15 22:19:04 WARN - Negative reserve while extending leg OUT leg_id=23, route_id=2707, place=3
+2022-08-15 22:19:04 DEBUG - new, extended OUT leg_id=23, route_id=2707, place=3, prev_reserve=2-distance_diff=3=new_reserve=0, diff=3+1+3+1+1-6
+2022-08-15 22:19:04 DEBUG - Updating places in route_id=2707 starting with place=3, dist_diff=3
+2022-08-15 22:19:04 DEBUG - Adding leg to route: leg_id=64, route_id=2707, order_id=270720, from=187, to=34, place=3, distance=1, reserve=0, routine route extender OUT
+2022-08-15 22:19:04 DEBUG - Updating existing route_id=2707, leg_id=63, to=187 reserve=0
+UPDATE leg SET reserve=LEAST(reserve, 3) WHERE route_id=2707 AND place <= 1;
+UPDATE leg SET place=place+1, reserve=GREATEST(0,reserve-1) WHERE route_id=2707 AND place >= 2;
+UPDATE taxi_order AS o SET route_id=2707, leg_id=63, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=2707 AND o.id=270720 AND o.status=0;
+UPDATE leg SET place=place+1, reserve=GREATEST(0,reserve-3) WHERE route_id=2707 AND place >= 3;
+2022-08-15 22:24:19 DEBUG - new, extended IN leg_id=63, route_id=2707, place=3, prev_reserve=0-distance_diff=-2=new_reserve=2, diff=2+1+1-6
+2022-08-15 22:24:19 DEBUG - Updating reserve in route_id=2707 starting with place=2, wait_diff=4
+2022-08-15 22:24:19 DEBUG - Updating places in route_id=2707 starting with place=3, dist_diff=-2
+2022-08-15 22:24:19 WARN - Negative distance diff in route_id=2707 starting with place=3, dist_diff=-2 (= extended route made a leg shorter!)
+2022-08-15 22:24:19 DEBUG - Adding leg to route: leg_id=3903, route_id=2707, order_id=272956, from=307, to=187, place=3, distance=1, reserve=2, routine route extender IN
+2022-08-15 22:24:19 DEBUG - Updating existing route_id=2707, leg_id=63, to=307 reserve=2
+2022-08-15 22:24:19 DEBUG - Assigning order_id=272956 to route_id=2707, leg_id=3903, routine extendRoute IN
+2022-08-15 22:24:19 DEBUG - new, extended OUT leg_id=63, route_id=2707, place=4, prev_reserve=2-distance_diff=0=new_reserve=2, diff=2+1+1+1+1-6
+2022-08-15 22:24:19 DEBUG - Updating places in route_id=2707 starting with place=4, dist_diff=0
+2022-08-15 22:24:19 DEBUG - Adding leg to route: leg_id=3904, route_id=2707, order_id=272956, from=308, to=187, place=4, distance=1, reserve=2, routine route extender OUT
+2022-08-15 22:24:19 DEBUG - Updating existing route_id=2707, leg_id=3903, to=308 reserve=2
+UPDATE leg SET reserve=LEAST(reserve, 4) WHERE route_id=2707 AND place <= 2;
+UPDATE leg SET place=place+1 WHERE route_id=2707 AND place >= 3;
+UPDATE taxi_order AS o SET route_id=2707, leg_id=3903, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=2707 AND o.id=272956 AND o.status=0;
+UPDATE leg SET place=place+1, reserve=GREATEST(0,reserve-0) WHERE route_id=2707 AND place >= 4;
+2022-08-15 22:24:34 DEBUG - new, extended IN leg_id=63, route_id=2707, place=3, prev_reserve=2-distance_diff=2=new_reserve=0, diff=1+1+2-2
+2022-08-15 22:24:34 DEBUG - Updating reserve in route_id=2707 starting with place=2, wait_diff=8
+2022-08-15 22:24:34 DEBUG - Updating places in route_id=2707 starting with place=3, dist_diff=2
+2022-08-15 22:24:34 DEBUG - Adding leg to route: leg_id=4091, route_id=2707, order_id=273017, from=186, to=307, place=3, distance=2, reserve=0, routine route extender IN
+2022-08-15 22:24:34 DEBUG - Updating existing route_id=2707, leg_id=63, to=186 reserve=0
+2022-08-15 22:24:34 DEBUG - Assigning order_id=273017 to route_id=2707, leg_id=4091, routine extendRoute IN
+2022-08-15 22:24:34 WARN - Negative reserve while extending leg OUT leg_id=3903, route_id=2707, place=5
+2022-08-15 22:24:34 DEBUG - new, extended OUT leg_id=3903, route_id=2707, place=5, prev_reserve=0-distance_diff=1=new_reserve=0, diff=1+1+1-2
+2022-08-15 22:24:34 DEBUG - Updating places in route_id=2707 starting with place=5, dist_diff=1
+2022-08-15 22:24:34 DEBUG - Adding leg to route: leg_id=4092, route_id=2707, order_id=273017, from=185, to=308, place=5, distance=1, reserve=0, routine route extender OUT
+2022-08-15 22:24:34 DEBUG - Updating existing route_id=2707, leg_id=3903, to=185 reserve=0
+UPDATE leg SET reserve=LEAST(reserve, 8) WHERE route_id=2707 AND place <= 2;
+UPDATE leg SET place=place+1, reserve=GREATEST(0,reserve-2) WHERE route_id=2707 AND place >= 3;
+UPDATE taxi_order AS o SET route_id=2707, leg_id=4091, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=2707 AND o.id=273017 AND o.status=0;
+UPDATE leg SET place=place+1, reserve=GREATEST(0,reserve-1) WHERE route_id=2707 AND place >= 5;
+
+********************************
+order_id=278411 distance 9 from 4814 to 4816 cab_id=1011 route_id=20 cust_id=48
+order_id=278511 dist 13 from 4893 to 4896 cab_id=1694 cust_id=148 route_id=60
+
+2022/08/15 23:43:57 Request cust_id=48, from=4814 to=4816
+2022/08/15 23:43:57 Cab requested, cust_id=48, order_id=278411
+2022/08/15 23:44:12 Assigned, cust_id=48, order_id=278411, cab_id=1011,
+2022/08/15 23:44:12 Accepted, waiting for that cab, cust_id=48, order_id=278411, cab_id=1011,
+2022/08/15 23:46:12 Picked up, cust_id=48, order_id=278411, cab_id=1011,
+2022/08/16 00:16:13 Something wrong - customer has never reached the destination, cust_id=48, order_id=278411, cab_id=1011,
+2022/08/16 00:16:13 Status is not COMPLETED, cancelling the trip, cust_id=48, order_id=278411, cab_id=1011,
+
+2022/08/15 23:42:07 Starting my shift, cab_id=1011,
+2022/08/15 23:42:07 Updating cab_id=1011, free at: 1011
+2022/08/15 23:44:07 New route to run, cab_id=1011, route_id=20,
+2022/08/15 23:45:07 Cab cab_id=1011, is moving from 1011 to 4814, leg_id=94,
+2022/08/15 23:47:07 Cab cab_id=1011, is moving from 4814 to 4536, leg_id=95,
+2022/08/15 23:54:07 Cab cab_id=1011, is moving from 4536 to 623, leg_id=594,
+2022/08/15 23:56:07 Cab cab_id=1011, is moving from 623 to 620, leg_id=959,
+2022/08/15 23:59:07 Cab cab_id=1011, is moving from 620 to 4539, leg_id=960,
+2022/08/16 00:01:07 Cab cab_id=1011, is moving from 4539 to 4612, leg_id=595,
+2022/08/16 00:03:07 Cab cab_id=1011, is moving from 4612 to 4429, leg_id=287,
+2022/08/16 00:06:07 Cab cab_id=1011, is moving from 4429 to 4431, leg_id=2348,
+2022/08/16 00:08:07 Cab cab_id=1011, is moving from 4431 to 4614, leg_id=2349,
+2022/08/16 00:11:07 Cab cab_id=1011, is moving from 4614 to 5113, leg_id=288,
+2022/08/16 00:14:08 Cab cab_id=1011, is moving from 5113 to 5114, leg_id=110,
+2022/08/16 00:21:08 Cab cab_id=1011, is moving from 5114 to 4816, leg_id=111,
+
+2022-08-15 23:44:01 DEBUG - Adding leg to route: leg_id=94, route_id=20, order_id=278411, from=1011, to=4814, place=0, distance=1, reserve=14, routine assignCab
+2022-08-15 23:44:01 DEBUG - Adding leg to route: leg_id=95, route_id=20, order_id=278411, from=4814, to=4816, place=1, distance=9, reserve=14, routine assignCustToCabMunkres
+2022-08-15 23:44:01 DEBUG - Assigning order_id=278411 to cab_id=1011, route_id=20, leg_id=95, routine assignOrderToCab
+UPDATE taxi_order SET route_id=20, leg_id=95, cab_id=1011, status=1, eta=1, in_pool=false WHERE id=278411 AND status=0;
+2022-08-15 23:44:14 DEBUG - new, extended IN leg_id=95, route_id=20, place=2, prev_reserve=14-distance_diff=5=new_reserve=9, diff=6+1+7-9
+2022-08-15 23:44:14 DEBUG - Adding leg to route: leg_id=110, route_id=20, order_id=278525, from=5113, to=4816, place=2, distance=7, reserve=9, routine route extender IN
+2022-08-15 23:44:14 DEBUG - Updating existing route_id=20, leg_id=95, to=5113 reserve=9
+2022-08-15 23:44:14 DEBUG - Assigning order_id=278525 to route_id=20, leg_id=110, routine extendRoute IN
+2022-08-15 23:44:14 DEBUG - new, extended OUT leg_id=95, route_id=20, place=3, prev_reserve=9-distance_diff=8=new_reserve=1, diff=6+1+6+1+3-9
+2022-08-15 23:44:14 DEBUG - Adding leg to route: leg_id=111, route_id=20, order_id=278525, from=5114, to=4816, place=3, distance=3, reserve=1, routine route extender OUT
+2022-08-15 23:44:14 DEBUG - Updating existing route_id=20, leg_id=110, to=5114 reserve=1
+UPDATE taxi_order AS o SET route_id=20, leg_id=110, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=20 AND o.id=278525 AND o.status=0;
+2022-08-15 23:44:39 DEBUG - new, extended IN leg_id=95, route_id=20, place=2, prev_reserve=9-distance_diff=6=new_reserve=3, diff=8+1+3-6
+2022-08-15 23:44:39 DEBUG - Adding leg to route: leg_id=287, route_id=20, order_id=278685, from=4612, to=5113, place=2, distance=3, reserve=3, routine route extender IN
+2022-08-15 23:44:39 DEBUG - Updating existing route_id=20, leg_id=95, to=4612 reserve=3
+2022-08-15 23:44:39 DEBUG - Assigning order_id=278685 to route_id=20, leg_id=287, routine extendRoute IN
+2022-08-15 23:44:39 WARN - Negative reserve while extending leg OUT leg_id=95, route_id=20, place=3
+2022-08-15 23:44:39 DEBUG - new, extended OUT leg_id=95, route_id=20, place=3, prev_reserve=3-distance_diff=7=new_reserve=0, diff=8+1+1+1+2-6
+2022-08-15 23:44:39 DEBUG - Adding leg to route: leg_id=288, route_id=20, order_id=278685, from=4614, to=5113, place=3, distance=2, reserve=0, routine route extender OUT
+2022-08-15 23:44:39 DEBUG - Updating existing route_id=20, leg_id=287, to=4614 reserve=0
+UPDATE taxi_order AS o SET route_id=20, leg_id=287, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=20 AND o.id=278685 AND o.status=0;
+2022-08-15 23:44:55 DEBUG - new, extended IN leg_id=95, route_id=20, place=2, prev_reserve=3-distance_diff=0=new_reserve=3, diff=6+1+1-8
+2022-08-15 23:44:55 DEBUG - Adding leg to route: leg_id=594, route_id=20, order_id=278755, from=4536, to=4612, place=2, distance=1, reserve=3, routine route extender IN
+2022-08-15 23:44:55 DEBUG - Updating existing route_id=20, leg_id=95, to=4536 reserve=3
+2022-08-15 23:44:55 DEBUG - Assigning order_id=278755 to route_id=20, leg_id=594, routine extendRoute IN
+2022-08-15 23:44:55 DEBUG - new, extended OUT leg_id=95, route_id=20, place=3, prev_reserve=3-distance_diff=2=new_reserve=1, diff=6+1+1+1+1-8
+2022-08-15 23:44:55 DEBUG - Adding leg to route: leg_id=595, route_id=20, order_id=278755, from=4539, to=4612, place=3, distance=1, reserve=1, routine route extender OUT
+2022-08-15 23:44:55 DEBUG - Updating existing route_id=20, leg_id=594, to=4539 reserve=1
+UPDATE taxi_order AS o SET route_id=20, leg_id=594, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=20 AND o.id=278755 AND o.status=0;
+2022-08-15 23:45:25 WARN - Negative distance_diff while extending leg IN leg_id=594, route_id=20, place=3
+2022-08-15 23:45:25 DEBUG - new, extended IN leg_id=594, route_id=20, place=3, prev_reserve=1-distance_diff=0=new_reserve=1, diff=1+1+1-7
+2022-08-15 23:45:25 DEBUG - Adding leg to route: leg_id=959, route_id=20, order_id=278971, from=623, to=4539, place=3, distance=1, reserve=1, routine route extender IN
+2022-08-15 23:45:25 DEBUG - Updating existing route_id=20, leg_id=594, to=623 reserve=1
+2022-08-15 23:45:25 DEBUG - Assigning order_id=278971 to route_id=20, leg_id=959, routine extendRoute IN
+2022-08-15 23:45:25 WARN - Negative distance_diff while extending leg OUT leg_id=594, route_id=20, place=4
+2022-08-15 23:45:25 DEBUG - new, extended OUT leg_id=594, route_id=20, place=4, prev_reserve=1-distance_diff=0=new_reserve=1, diff=1+1+2+1+1-7
+2022-08-15 23:45:25 DEBUG - Adding leg to route: leg_id=960, route_id=20, order_id=278971, from=620, to=4539, place=4, distance=1, reserve=1, routine route extender OUT
+2022-08-15 23:45:25 DEBUG - Updating existing route_id=20, leg_id=959, to=620 reserve=1
+UPDATE taxi_order AS o SET route_id=20, leg_id=959, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=20 AND o.id=278971 AND o.status=0;
+2022-08-15 23:47:17 WARN - Negative distance_diff while extending leg IN leg_id=287, route_id=20, place=7
+2022-08-15 23:47:17 DEBUG - new, extended IN leg_id=287, route_id=20, place=7, prev_reserve=0-distance_diff=0=new_reserve=0, diff=2+1+2-7
+2022-08-15 23:47:17 WARN - Max wait not met IN leg_id=287, route_id=20, place=7
+2022-08-15 23:47:17 DEBUG - Adding leg to route: leg_id=2348, route_id=20, order_id=279780, from=4429, to=4614, place=7, distance=2, reserve=0, routine route extender IN
+2022-08-15 23:47:17 DEBUG - Updating existing route_id=20, leg_id=287, to=4429 reserve=0
+2022-08-15 23:47:17 DEBUG - Assigning order_id=279780 to route_id=20, leg_id=2348, routine extendRoute IN
+2022-08-15 23:47:17 DEBUG - new, extended OUT leg_id=287, route_id=20, place=8, prev_reserve=0-distance_diff=0=new_reserve=0, diff=2+1+1+1+2-7
+2022-08-15 23:47:17 DEBUG - Adding leg to route: leg_id=2349, route_id=20, order_id=279780, from=4431, to=4614, place=8, distance=2, reserve=0, routine route extender OUT
+2022-08-15 23:47:17 DEBUG - Updating existing route_id=20, leg_id=2348, to=4431 reserve=0
+UPDATE taxi_order AS o SET route_id=20, leg_id=2348, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=20 AND o.id=279780 AND o.status=0;
+
+------------
+
+2022/08/15 23:44:11 Request cust_id=148, from=4893 to=4896
+2022/08/15 23:44:11 Cab requested, cust_id=148, order_id=278511
+2022/08/15 23:44:41 Assigned, cust_id=148, order_id=278511, cab_id=1694,
+2022/08/15 23:44:41 Accepted, waiting for that cab, cust_id=148, order_id=278511, cab_id=1694,
+2022/08/15 23:46:56 Picked up, cust_id=148, order_id=278511, cab_id=1694,
+2022/08/16 00:16:57 Something wrong - customer has never reached the destination, cust_id=148, order_id=278511, cab_id=1694,
+2022/08/16 00:16:57 Status is not COMPLETED, cancelling the trip, cust_id=148, order_id=278511, cab_id=1694,
+
+2022/08/15 23:42:21 Starting my shift, cab_id=1694,
+2022/08/15 23:42:21 Updating cab_id=1694, free at: 1694
+2022/08/15 23:44:51 New route to run, cab_id=1694, route_id=60,
+2022/08/15 23:45:51 Cab cab_id=1694, is moving from 1694 to 4893, leg_id=267,
+2022/08/15 23:47:51 Cab cab_id=1694, is moving from 4893 to 378, leg_id=268,
+2022/08/15 23:52:51 Cab cab_id=1694, is moving from 378 to 244, leg_id=578,
+2022/08/15 23:54:51 Cab cab_id=1694, is moving from 244 to 247, leg_id=2161,
+2022/08/15 23:56:51 Cab cab_id=1694, is moving from 247 to 379, leg_id=2162,
+2022/08/15 23:58:51 Cab cab_id=1694, is moving from 379 to 180, leg_id=579,
+2022/08/16 00:04:52 Cab cab_id=1694, is moving from 180 to 5189, leg_id=283,
+2022/08/16 00:06:52 Cab cab_id=1694, is moving from 5189 to 5188, leg_id=574,
+2022/08/16 00:11:52 Cab cab_id=1694, is moving from 5188 to 177, leg_id=575,
+2022/08/16 00:22:52 Cab cab_id=1694, is moving from 177 to 4896, leg_id=284,
+==============================================================================
+id	at_time	completed   distance	eta	from_stand     in_pool	max_loss max_wait	received	shared	started		  status    to_stand	cab_id	customer_id	leg_id	route_id
+309228	(null)	(null)		1	7	608		true	70	15	2022-08-20 21:23:20	false	(null)			3	606	1112	9		79	15
+309273	(null)	(null)		14	1	4088		false	70	15	2022-08-20 21:23:26	false	2022-08-20 21:25:41	3	4090	1655	54		88	19
+
+2022/08/20 23:23:20 Request cust_id=9, from=608 to=606
+2022/08/20 23:23:20 Cab requested, cust_id=9, order_id=309228
+2022/08/20 23:23:35 Assigned, cust_id=9, order_id=309228, cab_id=1112,
+2022/08/20 23:23:35 Accepted, waiting for that cab, cust_id=9, order_id=309228, cab_id=1112,
+2022/08/20 23:41:36 Cab has not arrived, cust_id=9, order_id=309228, cab_id=1112,
+
+2022/08/20 23:21:53 Starting my shift, cab_id=1112,
+2022/08/20 23:21:53 Updating cab_id=1112, free at: 1112
+2022/08/20 23:23:38 New route to run, cab_id=1112, route_id=15,
+2022/08/20 23:24:38 Cab cab_id=1112, is moving from 1112 to 1111, leg_id=77,
+2022/08/20 23:30:38 Cab cab_id=1112, is moving from 1111 to 2088, leg_id=78,
+2022/08/20 23:32:38 Cab cab_id=1112, is moving from 2088 to 2107, leg_id=299,
+2022/08/20 23:36:38 Cab cab_id=1112, is moving from 2107 to 2086, leg_id=110,
+2022/08/20 23:38:38 Cab cab_id=1112, is moving from 2086 to 2108, leg_id=300,
+2022/08/20 23:40:38 Cab cab_id=1112, is moving from 2108 to 608, leg_id=111,
+2022/08/20 23:42:38 Cab cab_id=1112, is moving from 608 to 606, leg_id=79,
+
+id	completed	   distance from_stand	place	started		   status    to_stand route_id	reserve
+77	2022-08-20 21:29:37	5	1112	0	2022-08-20 21:24:37	6	1111	15	2
+78	2022-08-20 21:31:37	1	1111	1	2022-08-20 21:30:37	6	2088	15	0
+299	2022-08-20 21:35:37	3	2088	2	2022-08-20 21:32:37	6	2107	15	0
+110	2022-08-20 21:37:37	1	2107	3	2022-08-20 21:36:37	6	2086	15	0
+300	2022-08-20 21:39:37	1	2086	4	2022-08-20 21:38:37	6	2108	15	0
+111	2022-08-20 21:41:37	1	2108	5	2022-08-20 21:40:37	6	608	15	0
+79	2022-08-20 21:43:37	1	608	6	2022-08-20 21:42:37	6	606	15	0
+
+2022-08-20 23:23:31 DEBUG - assign_orders_and_save_legs: route_id=15, cab_id=1112, pool=309256i,309256o,309228i,309228o,
+2022-08-20 23:23:31 DEBUG - Adding leg to route: leg_id=77, route_id=15, order_id=309256, from=1112, to=1111, place=0, distance=5, reserve=2, routine assignOrdersAndSaveLegs
+2022-08-20 23:23:31 DEBUG - Assigning order_id=309256 to cab_id=1112, route_id=15, leg_id=77, routine assignOrdersAndSaveLegs1
+2022-08-20 23:23:31 DEBUG - Adding leg to route: leg_id=78, route_id=15, order_id=309256, from=1111, to=608, place=1, distance=2, reserve=6, routine assignOrdersAndSaveLegs
+2022-08-20 23:23:31 DEBUG - Adding leg to route: leg_id=79, route_id=15, order_id=309228, from=608, to=606, place=2, distance=1, reserve=0, routine assignOrdersAndSaveLegs
+2022-08-20 23:23:31 DEBUG - Assigning order_id=309228 to cab_id=1112, route_id=15, leg_id=79, routine assignOrdersAndSaveLegs1
+UPDATE taxi_order SET route_id=15, leg_id=77, cab_id=1112, status=1, eta=0, in_pool=true WHERE id=309256 AND status=0;
+UPDATE taxi_order SET route_id=15, leg_id=79, cab_id=1112, status=1, eta=7, in_pool=true WHERE id=309228 AND status=0;
+
+2022-08-20 23:23:44 DEBUG - new, extended IN leg_id=78, route_id=15, place=2, prev_reserve=6, distance_diff=3, new_reserve=2, diff=3+1+1-2
+2022-08-20 23:23:44 DEBUG - Adding leg to route: leg_id=110, route_id=15, order_id=309376, from=2107, to=608, place=2, distance=1, reserve=2, routine route extender IN
+2022-08-20 23:23:44 DEBUG - Updating existing route_id=15, leg_id=78, to=2107 reserve=2
+2022-08-20 23:23:44 DEBUG - Assigning order_id=309376 to route_id=15, leg_id=110, routine extendRoute IN
+2022-08-20 23:23:44 WARN - Negative reserve while extending leg OUT leg_id=78, route_id=15, place=3
+2022-08-20 23:23:44 DEBUG - new, extended OUT leg_id=78, route_id=15, place=3, prev_reserve=2, distance_diff=5, new_reserve=0, diff=3+1+1+1+1-2
+2022-08-20 23:23:44 WARN - Order loss reserve is negative (route extension): route_id=15, order_id=309376,
+2022-08-20 23:23:44 DEBUG - Adding leg to route: leg_id=111, route_id=15, order_id=309376, from=2108, to=608, place=3, distance=1, reserve=0, routine route extender OUT
+2022-08-20 23:23:44 DEBUG - Updating existing route_id=15, leg_id=110, to=2108 reserve=0
+UPDATE taxi_order AS o SET route_id=15, leg_id=110, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=15 AND o.id=309376 AND o.status=0;
+2022-08-20 23:24:13 WARN - Negative reserve while extending leg IN leg_id=78, route_id=15, place=2
+
+2022-08-20 23:24:13 DEBUG - new, extended IN leg_id=78, route_id=15, place=2, prev_reserve=2, distance_diff=2, new_reserve=0, diff=1+1+3-3
+2022-08-20 23:24:13 DEBUG - Adding leg to route: leg_id=299, route_id=15, order_id=309428, from=2088, to=2107, place=2, distance=3, reserve=0, routine route extender IN
+2022-08-20 23:24:13 DEBUG - Updating existing route_id=15, leg_id=78, to=2088 reserve=0
+2022-08-20 23:24:13 DEBUG - Assigning order_id=309428 to route_id=15, leg_id=299, routine extendRoute IN
+2022-08-20 23:24:13 WARN - Negative reserve while extending leg OUT leg_id=110, route_id=15, place=4
+2022-08-20 23:24:13 DEBUG - new, extended OUT leg_id=110, route_id=15, place=4, prev_reserve=0, distance_diff=0, new_reserve=0, diff=1+1+1-3
+2022-08-20 23:24:13 WARN - Order loss reserve is negative (route extension): route_id=15, order_id=309428,
+2022-08-20 23:24:13 DEBUG - Adding leg to route: leg_id=300, route_id=15, order_id=309428, from=2086, to=2108, place=4, distance=1, reserve=0, routine route extender OUT
+2022-08-20 23:24:13 DEBUG - Updating existing route_id=15, leg_id=110, to=2086 reserve=0
+UPDATE taxi_order AS o SET route_id=15, leg_id=299, cab_id=r.cab_id, status=1, eta=0 FROM route AS r WHERE r.id=15 AND o.id=309428 AND o.status=0;
+==================
+2022/08/20 23:23:27 Request cust_id=54, from=4088 to=4090 dist=14 (with loss
+= 23.8)
+2022/08/20 23:23:27 Cab requested, cust_id=54, order_id=309273
+2022/08/20 23:23:42 Assigned, cust_id=54, order_id=309273, cab_id=1655,
+2022/08/20 23:23:42 Accepted, waiting for that cab, cust_id=54, order_id=309273, cab_id=1655,
+2022/08/20 23:25:42 Picked up, cust_id=54, order_id=309273, cab_id=1655,
+2022/08/20 23:55:43 Something wrong - customer has never reached the destination, cust_id=54, order_id=309273, cab_id=1655,
+2022/08/20 23:55:43 Status is not COMPLETED, cancelling the trip, cust_id=54, order_id=309273, cab_id=1655,
+
+23:25 + 23 = 23:48 miala sie zakonczyc, a zakonczyla 23:58
+
+2022/08/20 23:22:04 Starting my shift, cab_id=1655,
+2022/08/20 23:22:04 Updating cab_id=1655, free at: 1655
+2022/08/20 23:23:34 New route to run, cab_id=1655, route_id=19,
+2022/08/20 23:24:34 Cab cab_id=1655, is moving from 1655 to 4088, leg_id=87,
+2022/08/20 23:26:34 Cab cab_id=1655, is moving from 4088 to 3198, leg_id=88,
+2022/08/20 23:32:34 Cab cab_id=1655, is moving from 3198 to 4646, leg_id=655,
+2022/08/20 23:40:34 Cab cab_id=1655, is moving from 4646 to 3197, leg_id=104,
+2022/08/20 23:42:34 Cab cab_id=1655, is moving from 3197 to 4644, leg_id=656,
+2022/08/20 23:44:34 Cab cab_id=1655, is moving from 4644 to 4090, leg_id=105,
+
+id	completed	   distance  from_stand	place	started		   status    to_stand route_id	reserve
+87	2022-08-20 21:25:33	1	1655	0	2022-08-20 21:24:33	6	4088	19	0
+88	2022-08-20 21:31:33	5	4088	1	2022-08-20 21:26:33	6	3198	19	0
+655	2022-08-20 21:39:33	7	3198	2	2022-08-20 21:32:33	6	4646	19	0
+104	2022-08-20 21:41:33	1	4646	3	2022-08-20 21:40:33	6	3197	19	0
+656	2022-08-20 21:43:33	1	3197	4	2022-08-20 21:42:33	6	4644	19	0
+105	2022-08-20 21:58:33	14	4644	5	2022-08-20 21:44:33	6	4090	19	0  
+
+id	at_time	completed	  distance	eta  from_stand	in_pool	max_loss max_wait	received	shared	started	status	to_stand	cab_id	customer_id	leg_id	route_id
+309273	(null)	(null)			14	1	4088	false	70	15	2022-08-20 21:23:26	false	2022-08-20 21:25:41	3	4090	1655	54	88	19
+309289	(null)	2022-08-20 21:43:44	3	0	4646	false	70	15	2022-08-20 21:23:29	false	2022-08-20 21:39:44	8	4644	1655	70	104	19
+309609	(null)	2022-08-20 21:41:45	7	0	3198	false	70	15	2022-08-20 21:24:15	false	2022-08-20 21:31:45	8	3197	1655	390	655	19
+

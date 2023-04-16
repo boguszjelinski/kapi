@@ -15,8 +15,8 @@ import (
 	"time"
 )
 
-var host string = "http://localhost:8080" // "http://localhost:5128"//192.168.10.178
-const cab_speed = 60.0
+var host string = "http://192.168.10.178:8080" // "http://localhost:5128"//192.168.10.178
+const cab_speed = 30.0
 
 var client = &http.Client{Timeout: time.Second * 30}
 
@@ -173,7 +173,7 @@ func GetDistance(stops *[]model.Stop, from_id int, to_id int) int {
 		return -1
 	}
 	var dist = int(Dist((*stops)[from].Latitude, (*stops)[from].Longitude,
-		(*stops)[to].Latitude, (*stops)[to].Longitude)) * 60.0 / cab_speed
+		(*stops)[to].Latitude, (*stops)[to].Longitude)) * (60.0 / cab_speed)
 	if dist == 0 {
 		dist = 1
 	} // at least one minute

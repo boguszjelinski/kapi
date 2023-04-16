@@ -17,18 +17,18 @@ import (
 // for cabs
 const MAX_TIME = 60       // minutes;
 const CHECK_INTERVAL = 15 // secs
-const MAX_CABS = 4000
+const MAX_CABS = 9000
 const MAX_STAND = 5191
-const CAB_SPEED = 60 // km/h
+// km/h  !!! cab_speed variable in utils.go; kapir -> distance.rs; kern -> kern.toml
 const STOP_WAIT = 60 // secs
 
 // the customer part
-const REQ_PER_MIN = 200
+const REQ_PER_MIN = 2400
 const MAX_WAIT = 15
 const MAX_POOL_LOSS = 70 // 70% detour
 const MAX_WAIT_FOR_RESPONSE = 3
 const MAX_WAIT_FOR_CAB_TOLERANCE = 5
-const MAX_TRIP = 10     // max allowed trip (the same const in API, should be shared! TODO)
+const MAX_TRIP = 10     // max allowed trip
 const MAX_TRIP_LEN = 30 // actual length, just to discover an error - cab driver got asleep :)
 const MAX_TRIP_LOSS = 2
 const DELAY = 50
@@ -50,8 +50,8 @@ func main() {
 		log.SetOutput(logFile)
 
 		for c := 0; c < MAX_CABS; c++ {
-			go RunCab(&stops, c, c)
-			time.Sleep(20 * time.Millisecond)
+			go RunCab(&stops, c, rand.Intn(MAX_STAND))
+			time.Sleep(5 * time.Millisecond)
 		}
 	} else { // CUSTOMER
 		LOG_FILE := "customers.log"
@@ -67,8 +67,8 @@ func main() {
 				var dem model.Demand
 				dem.From = rand.Intn(MAX_STAND)
 				dem.To = utils.RandomTo(dem.From, MAX_STAND)
-				if dem.From == dem.To || utils.GetDistance(&stops, dem.From, dem.To) > MAX_WAIT {
-					time.Sleep(time.Duration(DELAY) * time.Millisecond)
+				if dem.From == dem.To || utils.GetDistance(&stops, dem.From, dem.To) > MAX_TRIP {
+					time.Sleep(time.Duration(60*1000/REQ_PER_MIN) * time.Millisecond)
 					continue
 				}
 				dem.Wait = MAX_WAIT
@@ -134,9 +134,9 @@ func RunCab(stops *[]model.Stop, cab_id int, stand int) {
 				var dist = utils.GetDistance(stops, cab.Location, legs[0].From)
 				if dist == -1 {
 					log.Printf("GetDistance failed, cab_id=%d, from: %d to: %d\n", cab.Id, cab.Location, legs[0].From)
-					sleep(3600 / CAB_SPEED)
+					sleep(3600 / 60)
 				}
-				sleep((3600 / CAB_SPEED) * dist)
+				sleep((3600 / 60) * dist)
 				cab.Location = legs[0].From
 				// inform that cab is at the stand -> update Cab entity, 'completed' previous Task
 				utils.UpdateCab(usr, cab_id, cab.Location, "ASSIGNED")
@@ -171,7 +171,7 @@ func deliverPassengers(stops *[]model.Stop, usr string, legs []model.Task, cab m
 		utils.UpdateEntityByte(usr, "/legs/", json_data)
 		// wait as long as it takes to go
 		var dist = utils.GetDistance(stops, task.From, task.To)
-		sleep((3600 / CAB_SPEED) * dist) // cab is moving
+		sleep((3600 / 60) * dist) // cab is moving
 		cab.Location = task.To
 
 		task.Status = "COMPLETED"

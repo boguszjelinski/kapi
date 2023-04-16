@@ -1,0 +1,31 @@
+cust 4990
+cab 2973
+order 175451
+distance 14
+
+2022/08/12 10:24:39 Request cust_id=4990, from=4065 to=4068
+2022/08/12 10:24:39 Cab requested, cust_id=4990, order_id=175451
+2022/08/12 10:25:09 Assigned, cust_id=4990, order_id=175451, cab_id=2973,
+2022/08/12 10:25:09 Accepted, waiting for that cab, cust_id=4990, order_id=175451, cab_id=2973,
+2022/08/12 10:27:09 Picked up, cust_id=4990, order_id=175451, cab_id=2973,
+2022/08/12 10:57:09 Something wrong - customer has never reached the destination, cust_id=4990, order_id=175451, cab_id=2973,
+2022/08/12 10:57:09 Status is not COMPLETED, cancelling the trip, cust_id=4990, order_id=175451, cab_id=2973,
+
+2022/08/12 10:10:29 Starting my shift, cab_id=2973,
+2022/08/12 10:10:29 Updating cab_id=2973, free at: 2973
+2022/08/12 10:24:59 New route to run, cab_id=2973, route_id=2382,
+2022/08/12 10:25:59 Cab cab_id=2973, is moving from 2973 to 4065, leg_id=8594,
+2022/08/12 10:27:59 Cab cab_id=2973, is moving from 4065 to 4066, leg_id=8595,
+2022/08/12 10:32:59 Cab cab_id=2973, is moving from 4066 to 432, leg_id=8596,
+2022/08/12 10:37:59 Cab cab_id=2973, is moving from 432 to 4065, leg_id=8597,
+2022/08/12 10:39:59 Cab cab_id=2973, is moving from 4065 to 430, leg_id=8598,
+2022/08/12 10:44:59 Cab cab_id=2973, is moving from 430 to 4068, leg_id=8599,
+
+id	completed	distance	from_stand	place	started	status	to_stand	route_id
+8594	2022-08-12 08:27:00	1	2973	0	2022-08-12 08:26:00	6	4065	2382
+8595	2022-08-12 08:32:00	4	4065	1	2022-08-12 08:28:00	6	4066	2382
+8596	2022-08-12 08:37:00	4	4066	2	2022-08-12 08:33:00	6	432	2382
+8597	2022-08-12 08:39:00	1	432	3	2022-08-12 08:38:00	6	4065	2382
+8598	2022-08-12 08:44:00	4	4065	4	2022-08-12 08:40:00	6	430	2382
+8599	2022-08-12 08:59:00	14	430	5	2022-08-12 08:45:00	6	4068	2382
+
