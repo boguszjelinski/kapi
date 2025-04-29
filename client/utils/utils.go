@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-var host string = "http://192.168.10.178:8080" // "http://localhost:5128"//192.168.10.178
+var host string = "http://localhost:8080" // "http://localhost:5128"//192.168.10.178
 const cab_speed = 30.0
 
 var client = &http.Client{Timeout: time.Second * 30}
@@ -40,7 +40,7 @@ func UpdateCab(usr string, cab_id int, stand int, status string) {
 	cab := model.Cab{Id: cab_id, Location: stand, Status: status}
 	json_data, err := json.Marshal(cab)
 	if err != nil {
-		fmt.Print(err.Error())
+		fmt.Printf("%s user=%s cab_id=%d stand=%d, status=%s", err.Error(), usr, cab_id, stand, status)
 		return
 	}
 	UpdateEntityByte(usr, "/cabs/", json_data)
@@ -68,12 +68,15 @@ func UpdateEntity(usr string, path string, id int, values map[string]string) {
 */
 
 func UpdateEntityByte(usr string, path string, json_data []byte) {
+	if path == "/legs/" {
+		fmt.Printf("PUT /legs usr=%s body=%s", usr, string(json_data))
+	}
 	_, err := SendReq(usr, host+path, "PUT", bytes.NewReader(json_data))
 	if err != nil {
 		// retry
 		_, err := SendReq(usr, host+path, "PUT", bytes.NewReader(json_data))
 		if err != nil {
-			fmt.Print(err.Error())
+			fmt.Printf("%s user=%s path=%s body=%s", err.Error(), usr, path, string(json_data))
 			return
 		}
 	}
@@ -93,16 +96,17 @@ func SaveDemand(method string, usr string, dem model.Demand) (model.Demand, erro
 
 	json_data, err := json.Marshal(dem)
 	if err != nil {
-		fmt.Print(err.Error())
+		fmt.Print("Err: " + err.Error())
 		return result, err
 	}
 	url := host + "/orders/"
 	//if method == "PUT" {
 	//	url += strconv.Itoa(dem.Id)
 	//}
+
 	body, err := SendReq(usr, url, method, bytes.NewReader(json_data))
 	if err != nil {
-		fmt.Print(err.Error())
+		fmt.Printf("%s user=%s method=%s body=%s", err.Error(), usr, method, string(json_data))
 		return result, err
 	}
 	if len(body) == 0 {
@@ -126,7 +130,9 @@ func SendReq(usr string, url string, method string, body io.Reader) ([]byte, err
 		//os.Exit(1)
 	}
 	req.SetBasicAuth(usr, usr)
-	req.Header.Set("Content-Type", "application/json") // for POST
+	if method != "GET" {
+		req.Header.Set("Content-Type", "application/json") // for POST
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		// try again
@@ -152,7 +158,7 @@ func SendReq(usr string, url string, method string, body io.Reader) ([]byte, err
 	return respBody, nil
 }
 
-//================ BEGIN: DISTANCE SERVICE ==============
+// ================ BEGIN: DISTANCE SERVICE ==============
 func GetDistance(stops *[]model.Stop, from_id int, to_id int) int {
 	var from = -1
 	var to = -1
@@ -199,7 +205,7 @@ func rad2deg(rad float64) float64 {
 	return (rad * 180.0 / math.Pi)
 }
 
-//================ END: DISTANCE SERVICE ==============
+// ================ END: DISTANCE SERVICE ==============
 const MAX_TRIP = 4 // this should not have any impact, distance not based on ID any more, but maybe it will help a bit
 
 func RandomTo(from int, maxStand int) int {
